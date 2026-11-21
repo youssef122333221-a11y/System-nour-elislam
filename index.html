@@ -1,0 +1,3154 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <title>بلايستيشن نور الإسلام - إدارة الصالة</title>
+
+    <!-- خط Cairo من Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- أيقونات Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        darkBg: '#090d16',
+                        cardBg: '#111827',
+                        ps4Blue: '#0070d1',
+                        ps5Gold: '#f59e0b',
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'alarm-flash': 'alarmFlash 1s infinite',
+                    },
+                    keyframes: {
+                        alarmFlash: {
+                            '0%, 100%': { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.25)' },
+                            '50%': { borderColor: '#facc15', backgroundColor: 'rgba(239, 68, 68, 0.05)' },
+                        }
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #060913;
+            background-image:
+                radial-gradient(circle at 12% 8%, rgba(37, 99, 235, 0.14), transparent 34%),
+                radial-gradient(circle at 88% 12%, rgba(245, 158, 11, 0.10), transparent 30%),
+                radial-gradient(circle at 50% 95%, rgba(16, 185, 129, 0.08), transparent 35%);
+            background-attachment: fixed;
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 10px;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-panel {
+            background: rgba(13, 19, 34, 0.86);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .station-card {
+            transition: transform 0.18s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+        .station-card:hover {
+            transform: translateY(-2px);
+        }
+        .tabular-nums {
+            font-variant-numeric: tabular-nums;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- ========================================== -->
+    <!-- 0. شاشة تسجيل الدخول (Login Screen)        -->
+    <!-- ========================================== -->
+    <div id="login-screen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-950 via-[#0b1120] to-slate-950">
+        <div class="w-full max-w-md glass-panel rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-800 relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-amber-500/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <div class="text-center mb-7 relative z-10">
+                <div class="w-16 h-16 rounded-3xl bg-gradient-to-br from-blue-600 via-indigo-600 to-amber-500 p-0.5 mx-auto mb-4 shadow-xl shadow-blue-500/20">
+                    <div class="w-full h-full bg-slate-950 rounded-[22px] flex items-center justify-center">
+                        <i data-lucide="gamepad-2" class="w-9 h-9 text-blue-400"></i>
+                    </div>
+                </div>
+                <h1 class="text-2xl font-black text-white">بلايستيشن <span class="text-transparent bg-clip-text bg-gradient-to-l from-amber-400 to-blue-400">نور الإسلام</span></h1>
+                <p class="text-xs text-slate-400 font-semibold mt-1">نظام الإدارة ومتابعة الشفتات — يرجى تسجيل الدخول</p>
+            </div>
+
+            <form id="login-form" onsubmit="handleLogin(event)" class="space-y-4 relative z-10">
+                <div>
+                    <label for="login-username" class="block text-xs font-bold text-slate-300 mb-1.5">اسم المستخدم (Username)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 right-3.5 flex items-center text-slate-500 pointer-events-none">
+                            <i data-lucide="user" class="w-4 h-4"></i>
+                        </span>
+                        <input type="text" id="login-username" required autocomplete="username" placeholder="أدخل اسم المستخدم..." class="w-full bg-slate-950/90 border border-slate-700/80 focus:border-blue-500 rounded-2xl pr-10 pl-4 py-3.5 text-sm text-white font-bold focus:outline-none transition">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="login-password" class="block text-xs font-bold text-slate-300 mb-1.5">كلمة المرور (Password)</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 right-3.5 flex items-center text-slate-500 pointer-events-none">
+                            <i data-lucide="lock" class="w-4 h-4"></i>
+                        </span>
+                        <input type="password" id="login-password" required autocomplete="current-password" placeholder="أدخل كلمة المرور..." class="w-full bg-slate-950/90 border border-slate-700/80 focus:border-blue-500 rounded-2xl pr-10 pl-4 py-3.5 text-sm text-white font-bold focus:outline-none transition">
+                    </div>
+                </div>
+
+                <div id="login-error" class="hidden bg-red-500/15 border border-red-500/40 text-red-300 text-xs font-bold px-3.5 py-2.5 rounded-xl flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-red-400 shrink-0"></i>
+                    <span id="login-error-msg">اسم المستخدم أو كلمة المرور غير صحيحة!</span>
+                </div>
+
+                <button type="submit" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-base shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2 transition active:scale-95 mt-2">
+                    <i data-lucide="log-in" class="w-5 h-5"></i>
+                    <span>تسجيل الدخول</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 1. واجهة العمال (الفترة الصباحية / المسائية) -->
+    <!-- ========================================== -->
+    <div id="staff-app" class="hidden flex-1 flex flex-col pb-20">
+        <!-- الشريط العلوي (Header) -->
+        <header class="sticky top-0 z-30 glass-panel border-b border-slate-800 px-4 py-3 shadow-lg">
+            <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2.5 sm:gap-3">
+                    <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-amber-500 p-0.5 shadow-lg shadow-blue-500/20 shrink-0">
+                        <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                            <i data-lucide="gamepad-2" class="w-5 h-5 sm:w-6 sm:h-6 text-blue-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-1.5 flex-wrap">
+                            <h1 class="text-sm sm:text-lg font-black tracking-tight text-white leading-tight">بلايستيشن <span class="text-transparent bg-clip-text bg-gradient-to-l from-amber-400 to-blue-400">نور الإسلام</span></h1>
+                            <span id="active-shift-badge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30">الفترة الصباحية</span>
+                        </div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <p id="live-date" class="text-[11px] text-amber-400/90 font-bold">--/--/----</p>
+                            <span class="text-slate-600 text-[10px]">•</span>
+                            <p id="live-clock" class="text-xs text-slate-400 font-semibold tabular-nums">--:--:--</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <button onclick="openPushSettingsModal()" id="sound-btn" title="إعدادات إشعارات الخلفية والمنبه" class="relative p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 text-amber-400 border border-slate-700 transition active:scale-95">
+                        <i data-lucide="bell-ring" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                        <span id="push-status-dot" class="absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950"></span>
+                    </button>
+
+                    <button onclick="openNewDayModal()" title="بدء يوم جديد وتصفير السجلات" class="flex items-center gap-1.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-400 border border-rose-500/30 font-bold text-xs sm:text-sm transition active:scale-95">
+                        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                        <span class="hidden md:inline">بدء يوم جديد</span>
+                    </button>
+
+                    <button onclick="openExpensesModal()" title="تسجيل مصروفات الشفت" class="flex items-center gap-1.5 px-2 sm:px-3 py-2 sm:py-2.5 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/35 font-bold text-xs sm:text-sm transition active:scale-95">
+                        <i data-lucide="banknote" class="w-4 h-4 text-orange-400"></i>
+                        <span class="hidden md:inline">المصروفات</span>
+                    </button>
+
+                    <button onclick="openHandoverModal()" title="تسليم الشفت للمدير" class="flex items-center gap-1.5 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/35 font-bold text-xs sm:text-sm transition active:scale-95">
+                        <i data-lucide="send" class="w-4 h-4 text-amber-400"></i>
+                        <span class="hidden sm:inline">تسليم الشفت</span>
+                        <span class="sm:hidden">تسليم</span>
+                    </button>
+
+                    <button onclick="openShiftModal('all')" class="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-bold text-xs sm:text-sm transition active:scale-95">
+                        <i data-lucide="receipt-text" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">اليومية</span>
+                        <span id="header-revenue" class="bg-emerald-500 text-slate-950 px-2 py-0.5 rounded-lg text-xs font-black tabular-nums">0 ج</span>
+                    </button>
+
+                    <button onclick="logoutUser()" title="تسجيل الخروج" class="p-2 sm:p-2.5 rounded-xl bg-slate-800/90 hover:bg-red-600/20 text-slate-400 hover:text-red-400 border border-slate-700 transition active:scale-95">
+                        <i data-lucide="log-out" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- شريط الإحصائيات السريعة -->
+        <div class="max-w-5xl w-full mx-auto px-4 pt-4">
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center">
+                <div class="glass-panel rounded-2xl p-3 shadow-md">
+                    <span class="text-[11px] text-slate-400 font-bold block">شغال الآن</span>
+                    <span id="stat-active" class="text-lg font-black text-amber-400 tabular-nums">0 / 10</span>
+                </div>
+                <div class="glass-panel rounded-2xl p-3 shadow-md">
+                    <span class="text-[11px] text-slate-400 font-bold block">حساب شغال لحظياً</span>
+                    <span id="stat-running-cash" class="text-lg font-black text-blue-400 tabular-nums">0 ج</span>
+                </div>
+                <button onclick="openExpensesModal()" class="glass-panel hover:border-orange-500/50 rounded-2xl p-3 shadow-md transition text-center active:scale-95">
+                    <span class="text-[11px] text-orange-300 font-bold flex items-center justify-center gap-1">
+                        <span>مصروفات الشفت</span>
+                        <i data-lucide="plus-circle" class="w-3.5 h-3.5 text-orange-400"></i>
+                    </span>
+                    <span id="stat-expenses" class="text-lg font-black text-orange-400 tabular-nums">0 ج</span>
+                </button>
+                <div class="bg-gradient-to-br from-emerald-950/75 to-slate-900/90 border border-emerald-500/35 rounded-2xl p-3 shadow-md">
+                    <span class="text-[11px] text-emerald-300 font-bold block">صافي الدرج الحالي</span>
+                    <span id="stat-net-drawer" class="text-lg font-black text-emerald-400 tabular-nums">0 ج</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- تنبيه داخلي بارز عند انتهاء وقت أحد الأجهزة -->
+        <div id="alarm-banner" class="hidden max-w-5xl w-full mx-auto px-4 pt-4">
+            <div class="bg-red-600 text-white rounded-2xl p-4 shadow-xl shadow-red-600/30 flex items-center justify-between animate-bounce">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="alarm-clock" class="w-7 h-7 shrink-0"></i>
+                    <div>
+                        <h3 class="font-black text-base" id="alarm-banner-title">انتهى وقت الجهاز!</h3>
+                        <p class="text-xs text-red-100" id="alarm-banner-desc">يرجى مراجعة الجهاز وإنهاء الجلسة</p>
+                    </div>
+                </div>
+                <button onclick="stopAlarmSound()" class="bg-white text-red-600 px-3 py-1.5 rounded-xl font-black text-xs shadow">كتم الصوت</button>
+            </div>
+        </div>
+
+        <!-- شبكة أجهزة البلايستيشن وقسم البلياردو -->
+        <main class="max-w-5xl w-full mx-auto px-4 py-4 flex-1 space-y-6">
+            <!-- قسم البلايستيشن (8 أجهزة) -->
+            <section>
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                            <i data-lucide="gamepad-2" class="w-4 h-4"></i>
+                        </span>
+                        <h2 class="text-sm sm:text-base font-black text-white">أجهزة البلايستيشن <span class="text-xs text-slate-400 font-bold">(8 أجهزة)</span></h2>
+                    </div>
+                </div>
+                <div id="stations-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                    <!-- يتم توليد كروت الأجهزة الـ 8 ديناميكياً -->
+                </div>
+            </section>
+
+            <!-- قسم البلياردو (طرابيزتين) -->
+            <section class="pt-4 border-t border-slate-800/80">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="w-8 h-8 rounded-xl bg-emerald-600/20 text-emerald-400 border border-emerald-500/35 flex items-center justify-center">
+                            <i data-lucide="circle-dot" class="w-4 h-4"></i>
+                        </span>
+                        <h2 class="text-sm sm:text-base font-black text-emerald-300">البلياردو <span class="text-xs text-slate-400 font-bold">(طرابيزتين — 30 ج/ساعة)</span></h2>
+                    </div>
+                </div>
+                <div id="billiards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    <!-- يتم توليد كروت طرابيزتين البلياردو ديناميكياً -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 2. واجهة المدير (Manager Dashboard)        -->
+    <!-- ========================================== -->
+    <div id="manager-app" class="hidden flex-1 flex flex-col pb-20">
+        <header class="sticky top-0 z-30 glass-panel border-b border-slate-800 px-4 py-3 shadow-lg">
+            <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-amber-500 via-yellow-500 to-emerald-500 p-0.5 shadow-lg shadow-amber-500/20">
+                        <div class="w-full h-full bg-slate-950 rounded-[14px] flex items-center justify-center">
+                            <i data-lucide="crown" class="w-6 h-6 text-amber-400"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <h1 class="text-base sm:text-lg font-black text-white leading-tight">لوحة المدير — <span class="text-amber-400">نور الإسلام</span></h1>
+                            <span id="cloud-sync-badge" class="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>
+                                جاري الاتصال...
+                            </span>
+                        </div>
+                        <p id="mgr-live-date" class="text-xs text-slate-400 font-semibold mt-0.5">--/--/----</p>
+                    </div>
+                </div>
+
+                <button onclick="logoutUser()" class="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-red-600/20 hover:bg-red-600/30 text-red-300 border border-red-500/30 font-bold text-xs sm:text-sm transition active:scale-95">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    <span>خروج</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="max-w-5xl w-full mx-auto px-4 py-5 flex-1 space-y-5">
+            <!-- التنقل بين الواجهة السريعة لليوم والتقويم الشهري -->
+            <div class="grid grid-cols-2 gap-2.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+                <button id="mgr-tab-today" onclick="switchManagerView('today')" class="py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg">
+                    <i data-lucide="zap" class="w-4 h-4"></i>
+                    <span>الواجهة السريعة لليوم</span>
+                </button>
+                <button id="mgr-tab-calendar" onclick="switchManagerView('calendar')" class="py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white">
+                    <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                    <span>التقويم والشهور والأيام</span>
+                </button>
+            </div>
+
+            <!-- 1. الواجهة السريعة لليوم -->
+            <section id="mgr-view-today" class="space-y-4">
+                <div class="bg-gradient-to-br from-slate-900 via-slate-900 to-emerald-950/30 border border-slate-800 rounded-3xl p-5 shadow-xl">
+                    <div class="flex flex-col gap-4 pb-4 border-b border-slate-800/80">
+                        <div>
+                            <span class="text-xs font-bold text-amber-400 block">متابعة شفتات اليوم المباشرة</span>
+                            <h2 id="mgr-today-title" class="text-xl font-black text-white mt-0.5">تقرير اليوم</h2>
+                        </div>
+                        <div class="grid grid-cols-3 gap-2.5 text-center">
+                            <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3">
+                                <span class="text-[11px] text-slate-400 font-bold block">إجمالي الإيراد</span>
+                                <span id="mgr-today-gross" class="text-base sm:text-xl font-black text-blue-400 tabular-nums">0 ج</span>
+                            </div>
+                            <div class="bg-slate-950/90 border border-orange-500/25 rounded-2xl p-3">
+                                <span class="text-[11px] text-orange-300 font-bold block">مصروفات اليوم</span>
+                                <span id="mgr-today-expenses" class="text-base sm:text-xl font-black text-orange-400 tabular-nums">0 ج</span>
+                            </div>
+                            <div class="bg-emerald-500/15 border border-emerald-500/35 rounded-2xl p-3">
+                                <span class="text-[11px] text-emerald-300 font-bold block">صافي الدرج اليوم</span>
+                                <span id="mgr-today-total" class="text-base sm:text-xl font-black text-emerald-400 tabular-nums">0 ج</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="mgr-today-shifts-container" class="pt-4 space-y-4"></div>
+                </div>
+            </section>
+
+            <!-- 2. التقويم والشهور والأيام -->
+            <section id="mgr-view-calendar" class="hidden space-y-4">
+                <div class="bg-slate-900/95 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4">
+                    <div class="flex items-center justify-between gap-2">
+                        <button onclick="changeManagerMonth(-1)" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition active:scale-95" title="الشهر السابق">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </button>
+                        <div class="text-center">
+                            <h2 id="mgr-cal-month-title" class="text-lg sm:text-xl font-black text-white">--</h2>
+                            <p class="text-[11px] text-slate-400">اضغط على أي يوم لعرض شفتاته وتفاصيل أجهزته والبلياردو</p>
+                        </div>
+                        <button onclick="changeManagerMonth(1)" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition active:scale-95" title="الشهر التالي">
+                            <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-center bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5">
+                        <div>
+                            <span class="text-[11px] text-slate-400 block">إجمالي إيراد الشهر</span>
+                            <span id="mgr-cal-month-gross" class="text-base sm:text-xl font-black text-blue-400 tabular-nums">0 ج</span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-orange-300 block">مصروفات الشهر</span>
+                            <span id="mgr-cal-month-expenses" class="text-base sm:text-xl font-black text-orange-400 tabular-nums">0 ج</span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-emerald-300 block">صافي ربح الشهر</span>
+                            <span id="mgr-cal-month-revenue" class="text-base sm:text-xl font-black text-emerald-400 tabular-nums">0 ج</span>
+                        </div>
+                        <div>
+                            <span class="text-[11px] text-amber-300 block">الشفتات / الجلسات</span>
+                            <span class="text-base sm:text-xl font-black text-amber-400 tabular-nums">
+                                <span id="mgr-cal-month-shifts">0</span> / <span id="mgr-cal-month-sessions">0</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-7 gap-1.5 text-center text-[11px] font-black text-slate-400 pt-1">
+                        <div>السبت</div>
+                        <div>الأحد</div>
+                        <div>الإثنين</div>
+                        <div>الثلاثاء</div>
+                        <div>الأربعاء</div>
+                        <div>الخميس</div>
+                        <div>الجمعة</div>
+                    </div>
+
+                    <div id="mgr-cal-days-grid" class="grid grid-cols-7 gap-1.5 sm:gap-2"></div>
+                </div>
+
+                <div id="mgr-selected-day-details" class="bg-slate-900/95 border border-slate-800 rounded-3xl p-5 shadow-xl space-y-4"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 3. نافذة التحكم بالجهاز + سجل الجهاز       -->
+    <!-- ========================================== -->
+    <div id="station-modal" class="fixed inset-0 z-40 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border-t sm:border border-slate-700 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[92vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div id="modal-station-badge" class="w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl text-white">1</div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 id="modal-station-title" class="text-xl font-black text-white">جهاز 1</h2>
+                            <span id="modal-station-type" class="text-xs font-extrabold px-2 py-0.5 rounded-md">PS4</span>
+                        </div>
+                        <p id="modal-station-rate" class="text-xs text-slate-400 font-semibold mt-0.5">عادي: 30 ج | مالتي: 40 ج</p>
+                    </div>
+                </div>
+                <button onclick="closeStationModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 mt-3 shrink-0">
+                <button id="tab-btn-control" onclick="switchModalTab('control')" class="py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                    <span>التحكم والوقت</span>
+                </button>
+                <button id="tab-btn-history" onclick="switchModalTab('history')" class="py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition">
+                    <i data-lucide="history" class="w-4 h-4"></i>
+                    <span>سجل الجهاز</span>
+                    <span id="tab-history-count" class="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-800 text-slate-300">0</span>
+                </button>
+            </div>
+
+            <div id="modal-body" class="pt-4 overflow-y-auto flex-1 pr-0.5"></div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 4. نافذة الفاتورة النهائية                 -->
+    <!-- ========================================== -->
+    <div id="invoice-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-sm rounded-3xl p-6 shadow-2xl text-center">
+            <div class="w-14 h-14 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-3 border border-emerald-500/30">
+                <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-black text-white">فاتورة الحساب - نور الإسلام</h3>
+            <p id="inv-station-info" class="text-sm text-slate-400 font-semibold mb-4">جهاز 1 (PS4)</p>
+
+            <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-sm text-right mb-5">
+                <div class="flex justify-between">
+                    <span class="text-slate-400">نظام الوقت:</span>
+                    <span id="inv-mode" class="font-bold text-white">وقت مفتوح</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">نوع اللعب:</span>
+                    <span id="inv-play-type" class="font-bold text-purple-400">عادي</span>
+                </div>
+                <div id="inv-transfer-row" class="hidden flex justify-between text-xs bg-amber-500/10 border border-amber-500/20 p-2 rounded-xl text-amber-300">
+                    <span>ملاحظة النقل:</span>
+                    <span id="inv-transfer-note" class="font-bold"></span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">وقت البداية:</span>
+                    <span id="inv-start" class="font-bold text-blue-400 tabular-nums">--:--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">وقت الانتهاء:</span>
+                    <span id="inv-end" class="font-bold text-amber-400 tabular-nums">--:--</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">المدة المحسوبة:</span>
+                    <span id="inv-duration" class="font-bold text-white">--</span>
+                </div>
+                <div class="border-t border-slate-800 my-2 pt-2 flex justify-between">
+                    <span class="text-slate-400">حساب اللعب:</span>
+                    <span id="inv-play-cost" class="font-bold text-white tabular-nums">0 ج</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-slate-400">مشروبات وإضافات:</span>
+                    <span id="inv-extras-cost" class="font-bold text-white tabular-nums">0 ج</span>
+                </div>
+                <div class="border-t border-dashed border-slate-700 pt-3 flex justify-between items-center">
+                    <span class="text-base font-black text-slate-200">الإجمالي المطلوب:</span>
+                    <span id="inv-total" class="text-2xl font-black text-emerald-400 tabular-nums">0 جنيه</span>
+                </div>
+            </div>
+
+            <button onclick="closeInvoiceModal()" class="w-full py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-base shadow-lg shadow-emerald-600/25 transition active:scale-95">
+                تم التحصيل وإغلاق الفاتورة
+            </button>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 5. نافذة سجل اليومية العام                 -->
+    <!-- ========================================== -->
+    <div id="shift-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border-t sm:border border-slate-700 w-full max-w-lg rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[88vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <i data-lucide="wallet" class="w-6 h-6 text-emerald-400"></i>
+                    <h2 class="text-lg sm:text-xl font-black text-white">سجل يومية بلايستيشن نور الإسلام</h2>
+                </div>
+                <button onclick="closeShiftModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-1.5 overflow-x-auto py-2.5 no-scrollbar border-b border-slate-800/80" id="shift-filter-bar"></div>
+
+            <div class="bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border border-emerald-500/30 rounded-2xl p-4 my-3 flex items-center justify-between">
+                <div>
+                    <span id="shift-revenue-label" class="text-xs text-emerald-300 font-bold block">إجمالي إيراد الوردية (الكل)</span>
+                    <span id="shift-total-revenue" class="text-3xl font-black text-emerald-400 tabular-nums">0 جنيه</span>
+                </div>
+                <div class="text-left">
+                    <span class="text-xs text-slate-400 block">عدد الجلسات</span>
+                    <span id="shift-total-count" class="text-xl font-black text-white tabular-nums">0</span>
+                </div>
+            </div>
+
+            <div id="shift-history-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1 min-h-[150px]"></div>
+
+            <div class="pt-4 mt-3 border-t border-slate-800 flex flex-col sm:flex-row gap-2.5">
+                <button onclick="closeShiftModal(); openHandoverModal();" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 hover:to-yellow-400 text-slate-950 font-black text-sm shadow-lg shadow-amber-500/20 flex items-center justify-center gap-2 transition active:scale-95">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    <span>تسليم الشفت للمدير</span>
+                </button>
+                <button onclick="closeShiftModal(); openNewDayModal();" class="py-3 px-4 rounded-xl bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                    <span>بدء يوم جديد</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 6. نافذة تسليم الشفت                       -->
+    <!-- ========================================== -->
+    <div id="handover-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border-t sm:border border-slate-700 w-full max-w-2xl rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/30">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 id="ho-modal-title" class="text-lg sm:text-xl font-black text-white">تسليم شفت - بلايستيشن نور الإسلام</h2>
+                        <p id="ho-subtitle" class="text-xs text-slate-400">مراجعة تفصيلية لكل جهاز وطرابيزات البلياردو قبل التسليم</p>
+                    </div>
+                </div>
+                <button onclick="closeHandoverModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-2.5 my-3 shrink-0 text-center">
+                <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3">
+                    <span class="text-[11px] text-slate-400 font-bold block">إجمالي الإيراد</span>
+                    <span id="ho-total-revenue" class="text-lg sm:text-xl font-black text-blue-400 tabular-nums">0 ج</span>
+                    <span class="text-[10px] text-slate-500 block mt-0.5"><span id="ho-total-sessions">0</span> جلسة • مشروبات <span id="ho-total-extras">0 ج</span></span>
+                </div>
+                <div class="bg-slate-950/90 border border-orange-500/30 rounded-2xl p-3">
+                    <span class="text-[11px] text-orange-300 font-bold block">مصروفات الشفت</span>
+                    <span id="ho-total-expenses" class="text-lg sm:text-xl font-black text-orange-400 tabular-nums">0 ج</span>
+                    <button onclick="closeHandoverModal(); openExpensesModal();" class="text-[10px] text-orange-300 underline mt-0.5">تعديل / إضافة</button>
+                </div>
+                <div class="bg-gradient-to-br from-emerald-950/80 to-slate-950 border border-emerald-500/40 rounded-2xl p-3">
+                    <span class="text-[11px] text-emerald-300 font-bold block">صافي الدرج</span>
+                    <span id="ho-net-cash" class="text-xl sm:text-2xl font-black text-emerald-400 tabular-nums">0 ج</span>
+                </div>
+            </div>
+
+            <div id="ho-active-warning" class="hidden mb-3 shrink-0 bg-amber-500/15 border border-amber-500/35 rounded-2xl p-3 text-xs text-amber-200 flex items-start gap-2">
+                <i data-lucide="alert-circle" class="w-4 h-4 text-amber-400 shrink-0 mt-0.5"></i>
+                <span id="ho-active-warning-text">يوجد أجهزة شغالة حالياً ولم تُقفل بعد؛ سيتم تسليم الجلسات المنتهية فقط.</span>
+            </div>
+
+            <div id="ho-stations-breakdown" class="flex-1 overflow-y-auto space-y-2.5 pr-0.5 min-h-[160px]"></div>
+
+            <div id="ho-archived-section" class="mt-3 pt-2.5 border-t border-slate-800/80 shrink-0 hidden">
+                <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                    <span class="font-bold flex items-center gap-1"><i data-lucide="archive" class="w-3.5 h-3.5 text-blue-400"></i> آخر الشفتات المسلمة:</span>
+                    <span id="ho-archived-count" class="font-black text-blue-400">0</span>
+                </div>
+                <div id="ho-archived-list" class="max-h-24 overflow-y-auto space-y-1.5 text-[11px]"></div>
+            </div>
+
+            <div class="pt-3.5 mt-3 border-t border-slate-800 flex flex-col sm:flex-row gap-2.5 shrink-0">
+                <button onclick="confirmShiftHandover()" class="flex-1 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-sm shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition active:scale-95">
+                    <i data-lucide="check-check" class="w-5 h-5"></i>
+                    <span>تأكيد تسليم الشفت وترحيله للمدير</span>
+                </button>
+                <button onclick="closeHandoverModal()" class="py-3 px-4 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+                    إلغاء
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 7. نافذة تأكيد بدء يوم جديد                -->
+    <!-- ========================================== -->
+    <div id="new-day-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-6 shadow-2xl">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
+                        <i data-lucide="sunrise" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white">بدء يوم جديد على نظافة</h3>
+                        <p class="text-[11px] text-slate-400">تصفير سجل اليومية العام وسجل كل جهاز</p>
+                    </div>
+                </div>
+                <button onclick="closeNewDayModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="py-4 space-y-3.5">
+                <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5">
+                    <span class="text-xs text-slate-400 font-bold block mb-2">ملخص السجل الحالي (الذي سيتم مسحه):</span>
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-slate-900 rounded-xl p-2.5 border border-slate-800/80">
+                            <span class="text-[10px] text-slate-400 block">الإيرادات</span>
+                            <span id="nd-current-revenue" class="text-sm sm:text-base font-black text-emerald-400 tabular-nums">0 ج</span>
+                        </div>
+                        <div class="bg-slate-900 rounded-xl p-2.5 border border-slate-800/80">
+                            <span class="text-[10px] text-orange-300 block">المصروفات</span>
+                            <span id="nd-current-expenses" class="text-sm sm:text-base font-black text-orange-400 tabular-nums">0 ج</span>
+                        </div>
+                        <div class="bg-slate-900 rounded-xl p-2.5 border border-slate-800/80">
+                            <span class="text-[10px] text-slate-400 block">الجلسات</span>
+                            <span id="nd-current-sessions" class="text-sm sm:text-base font-black text-blue-400 tabular-nums">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-amber-500/10 border border-amber-500/25 rounded-2xl p-3 text-xs text-amber-200 leading-relaxed flex items-start gap-2.5">
+                    <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-400 shrink-0 mt-0.5"></i>
+                    <p>سيتم مسح <strong>سجل اليومية العام</strong> و<strong>سجل كل الأجهزة وطرابيزات البلياردو</strong> ليبدأ الحساب من الصفر.</p>
+                </div>
+
+                <div id="nd-active-warning" class="hidden bg-rose-500/15 border border-rose-500/40 rounded-2xl p-3.5 text-xs text-rose-200 space-y-1.5">
+                    <div class="flex items-center gap-2 font-black text-rose-300">
+                        <span class="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping"></span>
+                        <span id="nd-active-warning-title">تنبيه: يوجد أجهزة شغالة حالياً!</span>
+                    </div>
+                    <p class="text-slate-300">اختر هل تريد تصفير السجلات القديمة فقط مع استمرار الأجهزة الشغالة، أم تصفير شامل وإيقاف الجميع:</p>
+                </div>
+            </div>
+
+            <div id="nd-actions-container" class="space-y-2.5 pt-1"></div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 8. نافذة مصروفات الشفت (Shift Expenses)    -->
+    <!-- ========================================== -->
+    <div id="expenses-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border-t sm:border border-slate-700 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[88vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center border border-orange-500/35">
+                        <i data-lucide="banknote" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white">مصروفات الشفت</h3>
+                        <p class="text-[11px] text-slate-400">تُخصم تلقائياً لحساب صافي الدرج وتصل للمدير</p>
+                    </div>
+                </div>
+                <button onclick="closeExpensesModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="py-3.5 space-y-3 shrink-0 border-b border-slate-800/80">
+                <div class="flex flex-wrap gap-1.5">
+                    <button type="button" onclick="setExpenseReasonPreset('شاي وسكر')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-orange-500/25 text-[11px] font-bold text-slate-200 border border-slate-700">شاي وسكر</button>
+                    <button type="button" onclick="setExpenseReasonPreset('مياه وبيبسي')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-orange-500/25 text-[11px] font-bold text-slate-200 border border-slate-700">مياه وبيبسي</button>
+                    <button type="button" onclick="setExpenseReasonPreset('نظافة ومنظفات')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-orange-500/25 text-[11px] font-bold text-slate-200 border border-slate-700">نظافة</button>
+                    <button type="button" onclick="setExpenseReasonPreset('صيانة دراعات')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-orange-500/25 text-[11px] font-bold text-slate-200 border border-slate-700">صيانة</button>
+                    <button type="button" onclick="setExpenseReasonPreset('نثريات المحل')" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-orange-500/25 text-[11px] font-bold text-slate-200 border border-slate-700">نثريات</button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2">
+                    <input type="number" id="exp-amount-input" min="1" placeholder="المبلغ (ج)..." class="col-span-1 bg-slate-950 border border-slate-700 focus:border-orange-500 rounded-xl px-3 py-2.5 text-sm text-white font-black focus:outline-none">
+                    <input type="text" id="exp-reason-input" placeholder="السبب (مثال: شاي وسكر)..." class="col-span-2 bg-slate-950 border border-slate-700 focus:border-orange-500 rounded-xl px-3 py-2.5 text-sm text-white font-bold focus:outline-none">
+                </div>
+
+                <button onclick="addShiftExpense()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-black text-sm shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2 transition active:scale-95">
+                    <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                    <span>إضافة المصروف للخصم من الدرج</span>
+                </button>
+            </div>
+
+            <div class="flex items-center justify-between py-2.5 shrink-0">
+                <span class="text-xs font-bold text-slate-400">سجل مصروفات الشفت الحالي:</span>
+                <span class="text-sm font-black text-orange-400 tabular-nums">الإجمالي: <span id="exp-total-display">0 ج</span></span>
+            </div>
+
+            <div id="exp-list-container" class="flex-1 overflow-y-auto space-y-2 pr-0.5 min-h-[120px]"></div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- 9. نافذة إعدادات إشعارات الخلفية (ntfy)    -->
+    <!-- ========================================== -->
+    <div id="push-settings-modal" class="fixed inset-0 z-50 hidden bg-black/85 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 border-t sm:border border-slate-700 w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-800 shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center border border-amber-500/35">
+                        <i data-lucide="bell-ring" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-white">إشعارات الخلفية (وكروم مقفول)</h3>
+                        <p class="text-[11px] text-slate-400">تنبيه فوري للموبايل فور انتهاء وقت أي جهاز</p>
+                    </div>
+                </div>
+                <button onclick="closePushSettingsModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="py-4 overflow-y-auto space-y-4 pr-0.5">
+                <!-- مفتاح التفعيل -->
+                <div class="flex items-center justify-between bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5">
+                    <div>
+                        <span class="text-sm font-black text-white block">تفعيل إشعارات الخلفية المجدولة</span>
+                        <span class="text-[11px] text-slate-400">ترن على موبايلك حتى لو المتصفح مقفول</span>
+                    </div>
+                    <button id="push-toggle-btn" onclick="togglePushEnabled()" class="px-3.5 py-2 rounded-xl text-xs font-black transition active:scale-95">
+                        مفعّل
+                    </button>
+                </div>
+
+                <!-- اسم القناة السرية -->
+                <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5 space-y-2.5">
+                    <label for="push-topic-input" class="text-xs font-black text-amber-300 block">اسم قناة الإشعارات السرية (إنجليزي وأرقام فقط):</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="push-topic-input" dir="ltr" placeholder="nour-elislam-ps-alarm-8842" class="flex-1 bg-slate-900 border border-slate-700 focus:border-amber-500 rounded-xl px-3 py-2.5 text-xs text-white font-bold focus:outline-none">
+                        <button onclick="copyPushTopic()" title="نسخ اسم القناة" class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-300 text-xs font-black border border-slate-700 transition active:scale-95">
+                            نسخ
+                        </button>
+                    </div>
+                    <button onclick="savePushTopicFromInput()" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition active:scale-95">
+                        حفظ اسم القناة
+                    </button>
+                </div>
+
+                <!-- أزرار التجربة -->
+                <div class="grid grid-cols-1 gap-2">
+                    <button onclick="sendTestPushNow()" class="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-600/20 flex items-center justify-center gap-2 transition active:scale-95">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                        <span>تجربة إشعار فوري الآن على الموبايل</span>
+                    </button>
+                    <button onclick="sendTestPushDelayed()" class="w-full py-3 rounded-2xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-black text-xs flex items-center justify-center gap-2 transition active:scale-95">
+                        <i data-lucide="timer" class="w-4 h-4"></i>
+                        <span>تجربة إشعار بعد 15 ثانية (اقفل كروم وجرّب!)</span>
+                    </button>
+                    <button onclick="requestPermissionsAndTestAudio()" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <i data-lucide="volume-2" class="w-4 h-4 text-blue-400"></i>
+                        <span>تفعيل صوت المنبه الداخلي في المتصفح</span>
+                    </button>
+                </div>
+
+                <!-- خطوات الربط السريعة -->
+                <div class="bg-blue-500/10 border border-blue-500/25 rounded-2xl p-3.5 text-xs text-slate-200 space-y-2 leading-relaxed">
+                    <div class="font-black text-blue-300 flex items-center gap-1.5">
+                        <i data-lucide="smartphone" class="w-4 h-4"></i>
+                        <span>إزاي تشغلها على موبايلك في 30 ثانية (مجاناً):</span>
+                    </div>
+                    <ol class="list-decimal list-inside space-y-1.5 text-[11px] text-slate-300">
+                        <li>نزّل تطبيق <strong>ntfy</strong> المجاني من متجر Google Play (أو App Store).</li>
+                        <li>افتح تطبيق <strong>ntfy</strong> واضغط علامة <strong>(+)</strong> تحت على اليمين.</li>
+                        <li>الصق <strong>اسم القناة السرية</strong> اللي فوق واضغط <strong>Subscribe</strong>.</li>
+                        <li>اضغط زرار <strong>«تجربة إشعار بعد 15 ثانية»</strong> واقفل كروم فوراً وشوف الإشعار وهو بيرن!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- رسالة تنبيه صغيرة (Toast) -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-800 text-white border border-slate-600 px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
+        <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+        <span id="toast-msg">تم التحديث</span>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- كود البرمجة والمنطق (Classic JS + Dynamic Firebase Import) -->
+    <!-- ========================================== -->
+    <script>
+        // =========================================================================
+        // ☁️ إعدادات الربط السحابي (Firebase Cloud Firestore)
+        // الصق بيانات مشروعك على Firebase هنا:
+        // =========================================================================
+        const MANUAL_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCMwi0OUxsP-qX3tFnhlQQ7SyZ_TmVM_zc",
+            authDomain: "nour-elislam-ps.firebaseapp.com",
+            projectId: "nour-elislam-ps",
+            storageBucket: "nour-elislam-ps.firebasestorage.app",
+            messagingSenderId: "585994862560",
+            appId: "1:585994862560:web:71614bd1b2a698d27a7585"
+        };
+
+        // =========================================================================
+        // 🔔 قناة إشعارات الخلفية الافتراضية (تصل حتى لو كروم مقفول عبر تطبيق ntfy)
+        // يمكنك تغيير هذا الاسم لأي اسم سري بالإنجليزي والأرقام ليكون خاصاً بمحلك فقط
+        // =========================================================================
+        const DEFAULT_PUSH_TOPIC = 'nour-elislam-ps-alarm-8842';
+
+        // =========================================================================
+        // 🔑 إعدادات حسابات الدخول (يمكنك تعديل اسم المستخدم وكلمة المرور من هنا)
+        // =========================================================================
+        const AUTH_ACCOUNTS = {
+            evening: {
+                username: 'محمد ايمن',   // <-- اسم مستخدم الفترة المسائية
+                password: 'حمو',         // <-- كلمة مرور الفترة المسائية
+                role: 'staff',
+                shiftType: 'evening',
+                shiftLabel: 'الفترة المسائية'
+            },
+            morning: {
+                username: '1234',        // <-- اسم مستخدم الفترة الصباحية
+                password: '1234',        // <-- كلمة مرور الفترة الصباحية
+                role: 'staff',
+                shiftType: 'morning',
+                shiftLabel: 'الفترة الصباحية'
+            },
+            manager: {
+                username: 'admin',       // <-- اسم مستخدم المدير
+                password: 'admin',       // <-- كلمة مرور المدير
+                role: 'manager',
+                shiftType: 'manager',
+                shiftLabel: 'لوحة تحكم المدير'
+            }
+        };
+
+        // --- 1. تهيئة البيانات الأساسية للأجهزة الـ 8 + طرابيزتين البلياردو ---
+        // الأسعار: PS4 (عادي: 30ج / مالتي: 40ج) | PS5 (عادي: 45ج / مالتي: 70ج) | البلياردو (30ج/ساعة)
+        const DEFAULT_STATIONS = [
+            { id: 1, category: 'ps', name: 'جهاز 1', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 2, category: 'ps', name: 'جهاز 2', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 3, category: 'ps', name: 'جهاز 3', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 4, category: 'ps', name: 'جهاز 4', type: 'PS5', singleRate: 45, multiRate: 70, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 5, category: 'ps', name: 'جهاز 5', type: 'PS5', singleRate: 45, multiRate: 70, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 6, category: 'ps', name: 'جهاز 6', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 7, category: 'ps', name: 'جهاز 7', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 8, category: 'ps', name: 'جهاز 8', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 9, category: 'billiards', name: 'بلياردو 1', type: 'بلياردو', singleRate: 30, multiRate: 30, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null },
+            { id: 10, category: 'billiards', name: 'بلياردو 2', type: 'بلياردو', singleRate: 30, multiRate: 30, isMulti: false, status: 'free', mode: null, startTime: null, segmentStartTime: null, accruedCost: 0, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, hadMultiSwitch: false, pushSequenceId: null }
+        ];
+
+        const STORAGE_STATIONS_KEY = 'nour_elislam_stations_v5';
+        const STORAGE_HISTORY_KEY = 'nour_elislam_history_v5';
+        const STORAGE_EXPENSES_KEY = 'nour_elislam_expenses_v5';
+        const STORAGE_HANDOVERS_KEY = 'nour_elislam_handovers_v5';
+        const STORAGE_SESSION_USER_KEY = 'nour_elislam_session_user_v5';
+        const STORAGE_PUSH_CONFIG_KEY = 'nour_elislam_push_config_v1';
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nour-elislam-ps-lounge';
+        let cloudDb = null;
+        let cloudAuth = null;
+        let cloudUser = null;
+        let cloudFns = null;
+        let unsubscribeHandovers = null;
+
+        let stations = [];
+        let shiftHistory = [];
+        let shiftExpenses = [];
+        let handedOverShifts = [];
+        let currentUser = null;
+        let pushConfig = { enabled: true, topic: DEFAULT_PUSH_TOPIC };
+
+        let selectedStationId = null;
+        let modalActiveTab = 'control';
+        let preStartMulti = false;
+        let transferPanelOpen = false;
+        let cancelConfirmActive = false;
+        let shiftModalFilter = 'all';
+
+        // حالة لوحة تحكم المدير
+        let managerActiveView = 'today';
+        let managerCalendarDate = new Date();
+        let managerSelectedDateKey = getLocalDateKey(new Date());
+
+        // حالة الصوت والمنبه
+        let audioCtx = null;
+        let alarmInterval = null;
+        let toastTimer = null;
+
+        // =========================================================================
+        // أدوات مساعدة عامة (التاريخ، الوقت، التقريب إلى 5، الحفظ)
+        // =========================================================================
+        function cloneDefaultStations() {
+            return DEFAULT_STATIONS.map(s => ({ ...s }));
+        }
+
+        function roundToFive(amount) {
+            const num = Number(amount);
+            if (!isFinite(num) || num <= 0) return 0;
+            return Math.round(num / 5) * 5;
+        }
+
+        function getLocalDateKey(d = new Date()) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${y}-${m}-${day}`;
+        }
+
+        function formatTime12Hour(timestamp) {
+            if (!timestamp) return '--:--';
+            return new Date(timestamp).toLocaleTimeString('ar-EG', {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+
+        function formatTimerHHMMSS(ms) {
+            const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+            const hrs = Math.floor(totalSeconds / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+            const secs = totalSeconds % 60;
+            return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function formatDurationArabic(ms) {
+            const totalMinutes = Math.max(1, Math.round(ms / 60000));
+            const hrs = Math.floor(totalMinutes / 60);
+            const mins = totalMinutes % 60;
+            if (hrs === 0) return `${mins} دقيقة`;
+            if (mins === 0) return hrs === 1 ? 'ساعة واحدة' : (hrs === 2 ? 'ساعتين' : `${hrs} ساعات`);
+            const hrText = hrs === 1 ? 'ساعة' : (hrs === 2 ? 'ساعتين' : `${hrs} ساعات`);
+            return `${hrText} و ${mins} دقيقة`;
+        }
+
+        function getCurrentHourlyRate(station, forceMulti = null) {
+            if (station.category === 'billiards') return station.singleRate;
+            const useMulti = forceMulti !== null ? forceMulti : Boolean(station.isMulti);
+            return useMulti ? station.multiRate : station.singleRate;
+        }
+
+        function calculateExactPlayCost(station, nowTs = Date.now()) {
+            if (!station || station.status !== 'active' || !station.startTime) return 0;
+            const segStart = station.segmentStartTime || station.startTime;
+            const effectiveEnd = (station.mode === 'fixed' && station.endTime && nowTs >= station.endTime)
+                ? station.endTime
+                : nowTs;
+            const segMs = Math.max(0, effectiveEnd - segStart);
+            const rate = getCurrentHourlyRate(station);
+            const segCost = (segMs / 3600000) * rate;
+            return (Number(station.accruedCost) || 0) + segCost;
+        }
+
+        function calculatePlayCost(station, nowTs = Date.now()) {
+            return roundToFive(calculateExactPlayCost(station, nowTs));
+        }
+
+        function showToast(msg) {
+            const toastEl = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-msg');
+            if (!toastEl || !msgEl) return;
+            msgEl.innerText = msg;
+            toastEl.classList.remove('hidden');
+            if (toastTimer) clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toastEl.classList.add('hidden');
+            }, 3400);
+        }
+
+        function sanitizePushTopic(raw) {
+            return String(raw || '')
+                .trim()
+                .replace(/\s+/g, '-')
+                .replace(/[^a-zA-Z0-9_-]/g, '');
+        }
+
+        function loadPushConfig() {
+            try {
+                const raw = localStorage.getItem(STORAGE_PUSH_CONFIG_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    pushConfig = {
+                        enabled: parsed.enabled !== false,
+                        topic: sanitizePushTopic(parsed.topic) || DEFAULT_PUSH_TOPIC
+                    };
+                } else {
+                    pushConfig = { enabled: true, topic: DEFAULT_PUSH_TOPIC };
+                }
+            } catch (e) {
+                pushConfig = { enabled: true, topic: DEFAULT_PUSH_TOPIC };
+            }
+            updatePushStatusIndicator();
+        }
+
+        function savePushConfig() {
+            try {
+                localStorage.setItem(STORAGE_PUSH_CONFIG_KEY, JSON.stringify(pushConfig));
+            } catch (e) {}
+            updatePushStatusIndicator();
+        }
+
+        function updatePushStatusIndicator() {
+            const dot = document.getElementById('push-status-dot');
+            if (!dot) return;
+            if (pushConfig.enabled && pushConfig.topic) {
+                dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950';
+            } else {
+                dot.className = 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-slate-500 border-2 border-slate-950';
+            }
+        }
+
+        function loadState() {
+            loadPushConfig();
+            try {
+                const rawStations = localStorage.getItem(STORAGE_STATIONS_KEY);
+                if (rawStations) {
+                    const parsed = JSON.parse(rawStations);
+                    if (Array.isArray(parsed)) {
+                        stations = DEFAULT_STATIONS.map(def => {
+                            const existing = parsed.find(item => item && item.id === def.id);
+                            if (!existing) return { ...def };
+                            return {
+                                ...def,
+                                ...existing,
+                                category: def.category,
+                                name: def.name,
+                                type: def.type,
+                                singleRate: def.singleRate,
+                                multiRate: def.multiRate
+                            };
+                        });
+                    } else {
+                        stations = cloneDefaultStations();
+                    }
+                } else {
+                    stations = cloneDefaultStations();
+                }
+            } catch (e) {
+                stations = cloneDefaultStations();
+            }
+
+            try {
+                const rawHistory = localStorage.getItem(STORAGE_HISTORY_KEY);
+                shiftHistory = rawHistory ? JSON.parse(rawHistory) : [];
+                if (!Array.isArray(shiftHistory)) shiftHistory = [];
+            } catch (e) {
+                shiftHistory = [];
+            }
+
+            try {
+                const rawExpenses = localStorage.getItem(STORAGE_EXPENSES_KEY);
+                shiftExpenses = rawExpenses ? JSON.parse(rawExpenses) : [];
+                if (!Array.isArray(shiftExpenses)) shiftExpenses = [];
+            } catch (e) {
+                shiftExpenses = [];
+            }
+
+            try {
+                const rawHandovers = localStorage.getItem(STORAGE_HANDOVERS_KEY);
+                handedOverShifts = rawHandovers ? JSON.parse(rawHandovers) : [];
+                if (!Array.isArray(handedOverShifts)) handedOverShifts = [];
+            } catch (e) {
+                handedOverShifts = [];
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_STATIONS_KEY, JSON.stringify(stations));
+                localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(shiftHistory));
+                localStorage.setItem(STORAGE_EXPENSES_KEY, JSON.stringify(shiftExpenses));
+                localStorage.setItem(STORAGE_HANDOVERS_KEY, JSON.stringify(handedOverShifts));
+            } catch (e) {
+                console.warn('localStorage save failed:', e);
+            }
+        }
+
+        // =========================================================================
+        // 🔔 نظام إشعارات الخلفية المجدولة (ntfy.sh) — تصل حتى لو كروم مقفول
+        // =========================================================================
+        async function cancelStationPushNotification(station) {
+            if (!station || !station.pushSequenceId) return;
+            const seqId = station.pushSequenceId;
+            station.pushSequenceId = null;
+
+            const topic = sanitizePushTopic(pushConfig.topic);
+            if (!topic) return;
+
+            try {
+                await fetch(`https://ntfy.sh/${encodeURIComponent(topic)}/${encodeURIComponent(seqId)}`, {
+                    method: 'DELETE'
+                });
+            } catch (err) {
+                console.warn('Could not cancel scheduled push:', err);
+            }
+        }
+
+        async function scheduleStationPushNotification(station) {
+            if (!station || station.status !== 'active' || station.mode !== 'fixed' || !station.endTime) return false;
+            if (!pushConfig.enabled) return false;
+
+            const topic = sanitizePushTopic(pushConfig.topic);
+            if (!topic) return false;
+
+            const remainingSec = Math.floor((station.endTime - Date.now()) / 1000);
+            if (remainingSec < 10) return false;
+
+            if (station.pushSequenceId) {
+                await cancelStationPushNotification(station);
+            }
+
+            const seqId = `ps${station.id}-${Date.now()}`;
+            station.pushSequenceId = seqId;
+            saveState();
+
+            const playLabel = station.category === 'billiards' ? 'بلياردو' : (station.isMulti ? 'مالتي' : 'عادي');
+            const payload = {
+                topic: topic,
+                title: `انتهى وقت ${station.name} (${station.type})!`,
+                message: `بلايستيشن نور الإسلام — خلص الوقت المحدد لـ ${station.name} (${playLabel}) الساعة ${formatTime12Hour(station.endTime)}. اضغط لفتح النظام وحساب الفاتورة.`,
+                priority: 5,
+                tags: ['alarm_clock', 'video_game'],
+                delay: String(Math.floor(station.endTime / 1000)),
+                sequence_id: seqId
+            };
+
+            if (window.location.href && window.location.href.startsWith('http')) {
+                payload.click = window.location.href;
+            }
+
+            try {
+                const res = await fetch('https://ntfy.sh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('ntfy status ' + res.status);
+                renderAllGrids();
+                return true;
+            } catch (err) {
+                console.warn('Background push scheduling failed:', err);
+                station.pushSequenceId = null;
+                saveState();
+                return false;
+            }
+        }
+
+        function openPushSettingsModal() {
+            document.getElementById('push-settings-modal').classList.remove('hidden');
+            renderPushSettingsModal();
+        }
+
+        function closePushSettingsModal() {
+            const modal = document.getElementById('push-settings-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function renderPushSettingsModal() {
+            const toggleBtn = document.getElementById('push-toggle-btn');
+            const topicInput = document.getElementById('push-topic-input');
+
+            if (topicInput) topicInput.value = pushConfig.topic || DEFAULT_PUSH_TOPIC;
+            if (toggleBtn) {
+                if (pushConfig.enabled) {
+                    toggleBtn.innerText = 'مفعّل ✓';
+                    toggleBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition active:scale-95';
+                } else {
+                    toggleBtn.innerText = 'متوقف';
+                    toggleBtn.className = 'px-3.5 py-2 rounded-xl text-xs font-black bg-slate-800 text-slate-400 border border-slate-700 transition active:scale-95';
+                }
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function togglePushEnabled() {
+            pushConfig.enabled = !pushConfig.enabled;
+            savePushConfig();
+            renderPushSettingsModal();
+            showToast(pushConfig.enabled ? 'تم تفعيل إشعارات الخلفية المجدولة' : 'تم إيقاف إشعارات الخلفية');
+        }
+
+        function savePushTopicFromInput() {
+            const input = document.getElementById('push-topic-input');
+            if (!input) return;
+            const clean = sanitizePushTopic(input.value);
+            if (!clean || clean.length < 6) {
+                showToast('اكتب اسم قناة بالإنجليزي أو الأرقام (6 أحرف على الأقل)');
+                return;
+            }
+            pushConfig.topic = clean;
+            pushConfig.enabled = true;
+            savePushConfig();
+            renderPushSettingsModal();
+            showToast('تم حفظ قناة الإشعارات بنجاح');
+        }
+
+        function copyPushTopic() {
+            const input = document.getElementById('push-topic-input');
+            const topic = sanitizePushTopic(input ? input.value : pushConfig.topic);
+            if (!topic) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(topic).then(() => {
+                    showToast('تم نسخ اسم القناة: ' + topic);
+                }).catch(() => {
+                    showToast('انسخ الاسم يدوياً: ' + topic);
+                });
+            } else {
+                showToast('انسخ الاسم يدوياً: ' + topic);
+            }
+        }
+
+        async function sendTestPushNow() {
+            const input = document.getElementById('push-topic-input');
+            const topic = sanitizePushTopic(input ? input.value : pushConfig.topic);
+            if (!topic || topic.length < 6) {
+                showToast('احفظ اسم قناة صحيح أولاً');
+                return;
+            }
+            pushConfig.topic = topic;
+            savePushConfig();
+
+            try {
+                const payload = {
+                    topic: topic,
+                    title: 'تجربة إشعار — بلايستيشن نور الإسلام',
+                    message: 'ممتاز! إشعارات الخلفية شغالة ومربوطة بموبايلك بنجاح.',
+                    priority: 5,
+                    tags: ['white_check_mark', 'video_game']
+                };
+                if (window.location.href && window.location.href.startsWith('http')) {
+                    payload.click = window.location.href;
+                }
+                const res = await fetch('https://ntfy.sh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                showToast('تم إرسال الإشعار التجريبي الآن!');
+            } catch (err) {
+                showToast('تعذر الإرسال — تأكد من اتصال الإنترنت');
+            }
+        }
+
+        async function sendTestPushDelayed() {
+            const input = document.getElementById('push-topic-input');
+            const topic = sanitizePushTopic(input ? input.value : pushConfig.topic);
+            if (!topic || topic.length < 6) {
+                showToast('احفظ اسم قناة صحيح أولاً');
+                return;
+            }
+            pushConfig.topic = topic;
+            savePushConfig();
+
+            try {
+                const targetUnix = Math.floor((Date.now() + 15000) / 1000);
+                const payload = {
+                    topic: topic,
+                    title: 'انتهى وقت جهاز 1 (تجربة خلفية)!',
+                    message: 'الإشعار وصلك بنجاح حتى والمتصفح مقفول! اضغط هنا للعودة لنظام نور الإسلام.',
+                    priority: 5,
+                    tags: ['alarm_clock', 'video_game'],
+                    delay: String(targetUnix)
+                };
+                if (window.location.href && window.location.href.startsWith('http')) {
+                    payload.click = window.location.href;
+                }
+                const res = await fetch('https://ntfy.sh/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                showToast('تمت الجدولة! اقفل كروم دلوقتي وهيوصلك إشعار خلال 15 ثانية');
+            } catch (err) {
+                showToast('تعذر الجدولة — تأكد من اتصال الإنترنت');
+            }
+        }
+
+        // =========================================================================
+        // ☁️ الربط السحابي الذكي (Dynamic Import لـ Firebase بدون تعطيل التطبيق)
+        // =========================================================================
+        function updateCloudBadge(isConnected) {
+            const badge = document.getElementById('cloud-sync-badge');
+            if (!badge) return;
+            if (isConnected) {
+                badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 flex items-center gap-1';
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> متصل سحابياً`;
+            } else {
+                badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1';
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span> وضع محلي`;
+            }
+        }
+
+        async function initCloudConnection() {
+            try {
+                let firebaseConfig = null;
+                if (MANUAL_FIREBASE_CONFIG && MANUAL_FIREBASE_CONFIG.apiKey) {
+                    firebaseConfig = MANUAL_FIREBASE_CONFIG;
+                } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                    firebaseConfig = typeof __firebase_config === 'string'
+                        ? JSON.parse(__firebase_config)
+                        : __firebase_config;
+                }
+
+                if (!firebaseConfig) {
+                    updateCloudBadge(false);
+                    return;
+                }
+
+                const [appMod, authMod, fsMod] = await Promise.all([
+                    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js"),
+                    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js"),
+                    import("https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js")
+                ]);
+
+                cloudFns = {
+                    doc: fsMod.doc,
+                    setDoc: fsMod.setDoc,
+                    onSnapshot: fsMod.onSnapshot,
+                    collection: fsMod.collection
+                };
+
+                const fbApp = appMod.initializeApp(firebaseConfig);
+                cloudAuth = authMod.getAuth(fbApp);
+                cloudDb = fsMod.getFirestore(fbApp);
+
+                if (!MANUAL_FIREBASE_CONFIG.apiKey && typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    const cred = await authMod.signInWithCustomToken(cloudAuth, __initial_auth_token);
+                    cloudUser = cred.user;
+                } else {
+                    const cred = await authMod.signInAnonymously(cloudAuth);
+                    cloudUser = cred.user;
+                }
+
+                updateCloudBadge(true);
+                startCloudHandoversListener();
+            } catch (err) {
+                console.warn('Cloud fallback to local mode:', err);
+                updateCloudBadge(false);
+            }
+        }
+
+        function startCloudHandoversListener() {
+            if (!cloudDb || !cloudUser || !cloudFns) return;
+            if (unsubscribeHandovers) unsubscribeHandovers();
+
+            const handoversColRef = cloudFns.collection(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers');
+            unsubscribeHandovers = cloudFns.onSnapshot(
+                handoversColRef,
+                (snapshot) => {
+                    const cloudShifts = [];
+                    snapshot.forEach((docSnap) => {
+                        const data = docSnap.data();
+                        if (data) cloudShifts.push(data);
+                    });
+
+                    const mergedMap = new Map();
+                    handedOverShifts.forEach(item => mergedMap.set(String(item.id), item));
+                    cloudShifts.forEach(item => mergedMap.set(String(item.id), item));
+
+                    handedOverShifts = Array.from(mergedMap.values()).sort((a, b) => {
+                        const tA = new Date(a.handedOverAt || 0).getTime() || Number(a.id) || 0;
+                        const tB = new Date(b.handedOverAt || 0).getTime() || Number(b.id) || 0;
+                        return tB - tA;
+                    });
+
+                    saveState();
+
+                    if (currentUser && currentUser.role === 'manager') {
+                        if (managerActiveView === 'today') {
+                            renderManagerTodayView();
+                        } else {
+                            renderManagerCalendarView();
+                        }
+                        if (window.lucide) lucide.createIcons();
+                    }
+                },
+                (error) => {
+                    console.warn('Firestore snapshot warning:', error);
+                    updateCloudBadge(false);
+                }
+            );
+        }
+
+        async function sendShiftToManagerCloud(payload) {
+            if (!cloudDb || !cloudUser || !cloudFns) return false;
+            try {
+                const docRef = cloudFns.doc(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers', String(payload.id));
+                await cloudFns.setDoc(docRef, payload);
+                return true;
+            } catch (e) {
+                console.warn('Failed to upload shift to cloud:', e);
+                return false;
+            }
+        }
+
+        // =========================================================================
+        // 🔑 نظام تسجيل الدخول والصلاحيات (Login / Logout)
+        // =========================================================================
+        function handleLogin(event) {
+            event.preventDefault();
+            const usernameInput = document.getElementById('login-username');
+            const passwordInput = document.getElementById('login-password');
+            const errorBox = document.getElementById('login-error');
+
+            const u = (usernameInput.value || '').trim();
+            const p = (passwordInput.value || '').trim();
+
+            const matchedAccount = Object.values(AUTH_ACCOUNTS).find(
+                acc => acc.username.trim() === u && acc.password.trim() === p
+            );
+
+            if (!matchedAccount) {
+                errorBox.classList.remove('hidden');
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            errorBox.classList.add('hidden');
+            currentUser = {
+                username: matchedAccount.username,
+                role: matchedAccount.role,
+                shiftType: matchedAccount.shiftType,
+                shiftLabel: matchedAccount.shiftLabel
+            };
+
+            try {
+                localStorage.setItem(STORAGE_SESSION_USER_KEY, JSON.stringify(currentUser));
+            } catch (e) {}
+
+            usernameInput.value = '';
+            passwordInput.value = '';
+
+            applyAuthenticatedView();
+            showToast(`أهلاً بك — ${currentUser.shiftLabel}`);
+        }
+
+        function logoutUser() {
+            stopAlarmSound();
+            currentUser = null;
+            try {
+                localStorage.removeItem(STORAGE_SESSION_USER_KEY);
+            } catch (e) {}
+
+            closeStationModal();
+            closeInvoiceModal();
+            closeShiftModal();
+            closeHandoverModal();
+            closeNewDayModal();
+            closeExpensesModal();
+            closePushSettingsModal();
+
+            applyAuthenticatedView();
+            showToast('تم تسجيل الخروج بنجاح');
+        }
+
+        function applyAuthenticatedView() {
+            const loginScreen = document.getElementById('login-screen');
+            const staffApp = document.getElementById('staff-app');
+            const managerApp = document.getElementById('manager-app');
+
+            if (!currentUser) {
+                loginScreen.classList.remove('hidden');
+                staffApp.classList.add('hidden');
+                managerApp.classList.add('hidden');
+            } else if (currentUser.role === 'manager') {
+                loginScreen.classList.add('hidden');
+                staffApp.classList.add('hidden');
+                managerApp.classList.remove('hidden');
+                switchManagerView(managerActiveView);
+            } else {
+                loginScreen.classList.add('hidden');
+                managerApp.classList.add('hidden');
+                staffApp.classList.remove('hidden');
+
+                const shiftBadge = document.getElementById('active-shift-badge');
+                if (shiftBadge) {
+                    shiftBadge.innerText = currentUser.shiftLabel;
+                    if (currentUser.shiftType === 'evening') {
+                        shiftBadge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/35';
+                    } else {
+                        shiftBadge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35';
+                    }
+                }
+                renderAllGrids();
+            }
+
+            updateLiveClockAndDate();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // =========================================================================
+        // 🔔 نظام الصوت والتنبيهات الداخلي (Web Audio API + Notifications)
+        // =========================================================================
+        function ensureAudioContext() {
+            if (!audioCtx) {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (AudioCtx) audioCtx = new AudioCtx();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                audioCtx.resume().catch(() => {});
+            }
+        }
+
+        function playBeepTone() {
+            try {
+                ensureAudioContext();
+                if (!audioCtx) return;
+                const now = audioCtx.currentTime;
+                [880, 1100, 880].forEach((freq, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now + idx * 0.16);
+                    gain.gain.setValueAtTime(0.18, now + idx * 0.16);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + 0.14);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now + idx * 0.16);
+                    osc.stop(now + idx * 0.16 + 0.15);
+                });
+            } catch (e) {}
+        }
+
+        function requestPermissionsAndTestAudio() {
+            playBeepTone();
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().then((perm) => {
+                    showToast(perm === 'granted' ? 'تم تفعيل الصوت وإشعارات المتصفح بنجاح' : 'تم تفعيل التنبيه الصوتي');
+                }).catch(() => {
+                    showToast('تم تفعيل التنبيه الصوتي');
+                });
+            } else {
+                showToast('التنبيه الصوتي يعمل بنجاح');
+            }
+        }
+
+        function triggerStationAlarm(station) {
+            const banner = document.getElementById('alarm-banner');
+            const title = document.getElementById('alarm-banner-title');
+            const desc = document.getElementById('alarm-banner-desc');
+            if (banner && title && desc) {
+                title.innerText = `انتهى وقت ${station.name}!`;
+                desc.innerText = `(${station.type}) — يرجى مراجعة الزبون وإنهاء الجلسة`;
+                banner.classList.remove('hidden');
+            }
+
+            playBeepTone();
+            if (!alarmInterval) {
+                alarmInterval = setInterval(playBeepTone, 3000);
+            }
+
+            if ('Notification' in window && Notification.permission === 'granted') {
+                try {
+                    new Notification(`انتهى وقت ${station.name}`, {
+                        body: `بلايستيشن نور الإسلام — ${station.name} (${station.type}) انتهى وقته المحدد.`
+                    });
+                } catch (e) {}
+            }
+        }
+
+        function stopAlarmSound() {
+            if (alarmInterval) {
+                clearInterval(alarmInterval);
+                alarmInterval = null;
+            }
+            const banner = document.getElementById('alarm-banner');
+            if (banner) banner.classList.add('hidden');
+        }
+
+        // =========================================================================
+        // 🖥️ عرض كروت البلايستيشن (8) والبلياردو (2) والإحصائيات
+        // =========================================================================
+        function buildStationCardHTML(station, now) {
+            const isPS5 = station.type === 'PS5';
+            const isBilliards = station.category === 'billiards';
+            const isActive = station.status === 'active';
+            const isOvertime = isActive && station.mode === 'fixed' && station.endTime && now >= station.endTime;
+
+            let borderClass = 'border-slate-800/90 hover:border-slate-600';
+            let bgClass = 'bg-slate-900/85';
+            let topAccentClass = isBilliards
+                ? 'from-emerald-500 to-teal-400'
+                : (isPS5 ? 'from-amber-400 via-yellow-500 to-orange-500' : 'from-blue-500 to-indigo-500');
+
+            if (isOvertime) {
+                borderClass = 'border-red-500 animate-alarm-flash shadow-red-600/30';
+                bgClass = 'bg-red-950/35';
+                topAccentClass = 'from-red-500 to-yellow-400';
+            } else if (isActive) {
+                borderClass = station.mode === 'open'
+                    ? 'border-rose-500/75 shadow-rose-900/20'
+                    : 'border-amber-500/75 shadow-amber-900/20';
+                bgClass = isBilliards ? 'bg-emerald-950/30' : 'bg-slate-900/95';
+            } else if (isBilliards) {
+                borderClass = 'border-emerald-500/25 hover:border-emerald-400/60';
+            } else if (isPS5) {
+                borderClass = 'border-amber-500/30 hover:border-amber-400/70';
+            }
+
+            const badgeBg = isBilliards
+                ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                : (isPS5 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-blue-500/20 text-blue-300 border border-blue-500/40');
+
+            const statusBadge = !isActive
+                ? `<span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> متاح</span>`
+                : isOvertime
+                    ? `<span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">انتهى الوقت!</span>`
+                    : station.mode === 'open'
+                        ? `<span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span> أوبن</span>`
+                        : `<span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">${station.pushSequenceId ? '🔔 ' : ''}وقت محدد</span>`;
+
+            let middleContent = '';
+            if (!isActive) {
+                const rateLine = isBilliards
+                    ? `<span class="text-xs text-emerald-300 font-bold">الساعة: ${station.singleRate} جنيه</span>`
+                    : `<span class="text-xs text-slate-400 font-bold">عادي ${station.singleRate} ج • مالتي ${station.multiRate} ج</span>`;
+
+                middleContent = `
+                    <div class="py-5 text-center space-y-1.5">
+                        <div class="text-sm font-black text-slate-200">جاهز للتشغيل</div>
+                        ${rateLine}
+                    </div>
+                `;
+            } else {
+                const elapsedMs = Math.max(0, now - station.startTime);
+                const remainingMs = station.mode === 'fixed' && station.endTime ? Math.max(0, station.endTime - now) : 0;
+                const livePlayCost = calculatePlayCost(station, now);
+                const liveExtras = roundToFive(station.extras || 0);
+                const liveTotal = roundToFive(livePlayCost + liveExtras);
+
+                let progressBarHTML = '';
+                if (station.mode === 'fixed' && station.endTime && station.startTime) {
+                    const totalSpan = Math.max(1, station.endTime - station.startTime);
+                    const pctRemaining = Math.max(0, Math.min(100, (remainingMs / totalSpan) * 100));
+                    const barColor = pctRemaining <= 15 ? 'bg-red-500' : (pctRemaining <= 35 ? 'bg-amber-400' : 'bg-emerald-400');
+                    progressBarHTML = `
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-1.5">
+                            <div class="h-full ${barColor} rounded-full transition-all duration-1000" style="width: ${pctRemaining}%"></div>
+                        </div>
+                    `;
+                }
+
+                const playModeChip = !isBilliards
+                    ? `<span class="text-[10px] font-black px-1.5 py-0.5 rounded ${station.isMulti ? 'bg-purple-500/25 text-purple-300 border border-purple-500/35' : 'bg-slate-800 text-slate-300'}">${station.isMulti ? 'مالتي' : 'عادي'}</span>`
+                    : `<span class="text-[10px] font-black px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">بلياردو</span>`;
+
+                middleContent = `
+                    <div class="py-2 space-y-2">
+                        <div class="flex items-center justify-between text-[11px] text-slate-400">
+                            <span>بدأ: <strong class="text-blue-300 tabular-nums">${formatTime12Hour(station.startTime)}</strong></span>
+                            ${playModeChip}
+                        </div>
+                        <div class="bg-slate-950/95 border border-slate-800/90 rounded-2xl py-2.5 px-3 text-center">
+                            <span class="text-[10px] text-slate-400 block">${station.mode === 'fixed' ? (isOvertime ? 'انتهى الوقت المحدد' : 'الوقت المتبقي') : 'الوقت المنقضي'}</span>
+                            <span class="text-xl font-black tabular-nums ${isOvertime ? 'text-red-400' : (station.mode === 'fixed' ? 'text-amber-400' : 'text-white')}">${station.mode === 'fixed' ? formatTimerHHMMSS(remainingMs) : formatTimerHHMMSS(elapsedMs)}</span>
+                            ${progressBarHTML}
+                        </div>
+                        <div class="flex items-center justify-between text-xs pt-0.5">
+                            <span class="text-slate-400">${station.mode === 'fixed' ? `ينتهي ${formatTime12Hour(station.endTime)}` : 'الحساب اللحظي:'}</span>
+                            <span class="font-black text-emerald-400 tabular-nums text-sm">${liveTotal} ج</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            const stationSessionsCount = shiftHistory.filter(h => h.stationId === station.id).length;
+
+            return `
+                <div onclick="openStationModal(${station.id}, 'control')" class="station-card relative overflow-hidden cursor-pointer rounded-3xl border-2 ${borderClass} ${bgClass} p-4 shadow-xl flex flex-col justify-between">
+                    <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-l ${topAccentClass} opacity-85"></div>
+                    <div class="flex items-center justify-between gap-2 pb-2 pt-0.5 border-b border-slate-800/80">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-lg text-xs font-black ${badgeBg}">${station.type}</span>
+                            <h3 class="text-base font-black text-white">${station.name}</h3>
+                        </div>
+                        ${statusBadge}
+                    </div>
+                    ${middleContent}
+                    <div class="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[11px] text-slate-400">
+                        <span>جلسات الشفت: <strong class="text-white tabular-nums">${stationSessionsCount}</strong></span>
+                        <span class="text-blue-400 font-bold">تحكم ←</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderAllGrids() {
+            const psGrid = document.getElementById('stations-grid');
+            const billiardsGrid = document.getElementById('billiards-grid');
+            if (!psGrid || !billiardsGrid) return;
+
+            const now = Date.now();
+            const psStations = stations.filter(s => s.category === 'ps');
+            const billiardsStations = stations.filter(s => s.category === 'billiards');
+
+            psGrid.innerHTML = psStations.map(s => buildStationCardHTML(s, now)).join('');
+            billiardsGrid.innerHTML = billiardsStations.map(s => buildStationCardHTML(s, now)).join('');
+
+            const activeCount = stations.filter(s => s.status === 'active').length;
+            const runningCash = stations.reduce((sum, s) => {
+                if (s.status !== 'active') return sum;
+                return sum + roundToFive(calculatePlayCost(s, now) + roundToFive(s.extras || 0));
+            }, 0);
+            const totalRevenue = roundToFive(shiftHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
+            const totalExpenses = getTotalShiftExpenses();
+            const netDrawer = totalRevenue - totalExpenses;
+
+            const statActiveEl = document.getElementById('stat-active');
+            const statRunningEl = document.getElementById('stat-running-cash');
+            const statExpensesEl = document.getElementById('stat-expenses');
+            const statNetEl = document.getElementById('stat-net-drawer');
+            const headerRevEl = document.getElementById('header-revenue');
+
+            if (statActiveEl) statActiveEl.innerText = `${activeCount} / ${stations.length}`;
+            if (statRunningEl) statRunningEl.innerText = `${roundToFive(runningCash)} ج`;
+            if (statExpensesEl) statExpensesEl.innerText = `${totalExpenses} ج`;
+            if (statNetEl) statNetEl.innerText = `${netDrawer} ج`;
+            if (headerRevEl) headerRevEl.innerText = `${totalRevenue} ج`;
+        }
+
+        // =========================================================================
+        // 🎮 نافذة التحكم بالجهاز وسجل الجهاز (Station Modal)
+        // =========================================================================
+        function openStationModal(stationId, initialTab = 'control') {
+            selectedStationId = stationId;
+            modalActiveTab = initialTab;
+            preStartMulti = false;
+            transferPanelOpen = false;
+            cancelConfirmActive = false;
+            document.getElementById('station-modal').classList.remove('hidden');
+            renderStationModal();
+        }
+
+        function closeStationModal() {
+            selectedStationId = null;
+            transferPanelOpen = false;
+            cancelConfirmActive = false;
+            const modal = document.getElementById('station-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function switchModalTab(tab) {
+            modalActiveTab = tab;
+            renderStationModal();
+        }
+
+        function setPreStartMode(isMulti) {
+            preStartMulti = isMulti;
+            renderStationModal();
+        }
+
+        function toggleTransferPanel() {
+            transferPanelOpen = !transferPanelOpen;
+            renderStationModal();
+        }
+
+        function renderStationModal() {
+            if (!selectedStationId) return;
+            const station = stations.find(s => s.id === selectedStationId);
+            if (!station) return;
+
+            const isBilliards = station.category === 'billiards';
+            const isPS5 = station.type === 'PS5';
+            const now = Date.now();
+            const displayMulti = station.status === 'active' ? station.isMulti : preStartMulti;
+            const currentRate = getCurrentHourlyRate(station, displayMulti);
+
+            const badgeEl = document.getElementById('modal-station-badge');
+            badgeEl.innerText = isBilliards ? (station.id === 9 ? 'B1' : 'B2') : String(station.id);
+            badgeEl.className = `w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl text-white ${
+                isBilliards ? 'bg-gradient-to-br from-emerald-600 to-teal-600' : (isPS5 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600')
+            }`;
+
+            document.getElementById('modal-station-title').innerText = station.name;
+            const typeEl = document.getElementById('modal-station-type');
+            typeEl.innerText = station.type;
+            typeEl.className = `text-xs font-extrabold px-2 py-0.5 rounded-md ${
+                isBilliards ? 'bg-emerald-500/20 text-emerald-300' : (isPS5 ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300')
+            }`;
+
+            document.getElementById('modal-station-rate').innerText = isBilliards
+                ? `سعر الساعة: ${station.singleRate} جنيه/ساعة (بلياردو)`
+                : `السعر الحالي: ${currentRate} جنيه/ساعة (${displayMulti ? 'مالتي' : 'عادي'})`;
+
+            const deviceHistory = shiftHistory.filter(h => h.stationId === station.id);
+            const tabCountEl = document.getElementById('tab-history-count');
+            if (tabCountEl) tabCountEl.innerText = deviceHistory.length;
+
+            const tabControlBtn = document.getElementById('tab-btn-control');
+            const tabHistoryBtn = document.getElementById('tab-btn-history');
+            if (modalActiveTab === 'control') {
+                tabControlBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition bg-blue-600 text-white shadow';
+                tabHistoryBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white';
+            } else {
+                tabHistoryBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition bg-blue-600 text-white shadow';
+                tabControlBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white';
+            }
+
+            const body = document.getElementById('modal-body');
+
+            if (modalActiveTab === 'history') {
+                const deviceTotal = deviceHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0);
+                body.innerHTML = `
+                    <div class="space-y-3 pb-2">
+                        <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between">
+                            <div>
+                                <span class="text-xs text-slate-400 block">إجمالي دخل ${station.name} اليوم</span>
+                                <span class="text-2xl font-black text-emerald-400 tabular-nums">${roundToFive(deviceTotal)} جنيه</span>
+                            </div>
+                            <div class="text-left">
+                                <span class="text-xs text-slate-400 block">عدد الجلسات</span>
+                                <span class="text-xl font-black text-white tabular-nums">${deviceHistory.length}</span>
+                            </div>
+                        </div>
+
+                        ${deviceHistory.length === 0 ? `
+                            <div class="text-center py-10 text-slate-500 text-sm font-bold">
+                                لا توجد جلسات منتهية على ${station.name} حتى الآن
+                            </div>
+                        ` : `
+                            <div class="space-y-2">
+                                ${deviceHistory.map((h, idx) => `
+                                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-xs space-y-1.5">
+                                        <div class="flex items-center justify-between">
+                                            <span class="font-black text-white">جلسة #${deviceHistory.length - idx} • ${h.mode === 'open' ? 'وقت مفتوح' : 'وقت محدد'}</span>
+                                            <span class="font-black text-emerald-400 text-sm tabular-nums">${h.totalCost} ج</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-slate-400">
+                                            <span>من <strong class="text-blue-300 tabular-nums">${formatTime12Hour(h.startTime)}</strong> إلى <strong class="text-amber-300 tabular-nums">${formatTime12Hour(h.endTime)}</strong></span>
+                                            <span>${formatDurationArabic(h.durationMs)}</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">
+                                            <span>${h.playTypeLabel || 'عادي'} (لعب: ${h.playCost} ج)</span>
+                                            <span>مشروبات: ${h.extrasCost || 0} ج</span>
+                                        </div>
+                                        ${h.transferNote ? `<div class="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg">${h.transferNote}</div>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            if (station.status === 'free') {
+                const multiSelectorHTML = !isBilliards ? `
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3">
+                        <span class="text-xs font-bold text-slate-300 block mb-2">اختر نوع اللعب قبل البدء:</span>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setPreStartMode(false)" class="py-2.5 px-3 rounded-xl border-2 font-black text-xs transition ${!preStartMulti ? 'border-blue-500 bg-blue-500/20 text-white' : 'border-slate-800 bg-slate-900 text-slate-400'}">
+                                <div>عادي (فردي/زوجي)</div>
+                                <div class="text-[11px] text-emerald-400 mt-0.5">${station.singleRate} جنيه/ساعة</div>
+                            </button>
+                            <button onclick="setPreStartMode(true)" class="py-2.5 px-3 rounded-xl border-2 font-black text-xs transition ${preStartMulti ? 'border-purple-500 bg-purple-500/25 text-white' : 'border-slate-800 bg-slate-900 text-slate-400'}">
+                                <div>مالتي (3 أو 4 لاعبين)</div>
+                                <div class="text-[11px] text-amber-400 mt-0.5">${station.multiRate} جنيه/ساعة</div>
+                            </button>
+                        </div>
+                    </div>
+                ` : '';
+
+                body.innerHTML = `
+                    <div class="space-y-4 pb-2">
+                        ${multiSelectorHTML}
+
+                        <button onclick="startOpenSession(${station.id})" class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-black text-base shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2 transition active:scale-95">
+                            <i data-lucide="play-circle" class="w-6 h-6"></i>
+                            <span>بدء وقت مفتوح (Open)</span>
+                        </button>
+
+                        <div>
+                            <span class="text-xs font-bold text-slate-400 block mb-2">أو اختر وقت محدد (يبعت إشعار على موبايلك عند الانتهاء):</span>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                                <button onclick="startFixedSession(${station.id}, 30)" class="group bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 text-right transition active:scale-95">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-black text-white group-hover:text-blue-400">نص ساعة</span>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-400 font-bold">${roundToFive(currentRate * 0.5)} جنيه</span>
+                                </button>
+
+                                <button onclick="startFixedSession(${station.id}, 60)" class="group bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 text-right transition active:scale-95">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-black text-white group-hover:text-blue-400">ساعة</span>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-400 font-bold">${roundToFive(currentRate * 1)} جنيه</span>
+                                </button>
+
+                                <button onclick="startFixedSession(${station.id}, 90)" class="group bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 text-right transition active:scale-95">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-black text-white group-hover:text-blue-400">ساعة ونص</span>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-400 font-bold">${roundToFive(currentRate * 1.5)} جنيه</span>
+                                </button>
+
+                                <button onclick="startFixedSession(${station.id}, 120)" class="group bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 text-right transition active:scale-95">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-black text-white group-hover:text-blue-400">ساعتين</span>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-400 font-bold">${roundToFive(currentRate * 2)} جنيه</span>
+                                </button>
+
+                                <button onclick="startFixedSession(${station.id}, 180)" class="group bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 text-right transition active:scale-95">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-black text-white group-hover:text-blue-400">3 ساعات</span>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-400 font-bold">${roundToFive(currentRate * 3)} جنيه</span>
+                                </button>
+
+                                <button onclick="startFixedSession(${station.id}, 240)" class="group bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-blue-500/60 rounded-2xl p-3 text-right transition active:scale-95">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="text-sm font-black text-white group-hover:text-blue-400">4 ساعات</span>
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
+                                    </div>
+                                    <span class="text-[11px] text-emerald-400 font-bold">${roundToFive(currentRate * 4)} جنيه</span>
+                                </button>
+                            </div>
+
+                            <div class="flex gap-2 mt-2.5">
+                                <input type="number" id="custom-minutes-input" min="5" max="600" placeholder="وقت مخصص بالدقائق (مثلاً 45)..." class="flex-1 bg-slate-950 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2.5 text-xs text-white font-bold focus:outline-none">
+                                <button onclick="startCustomFixedSession(${station.id})" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-black transition active:scale-95">تشغيل</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                if (window.lucide) lucide.createIcons();
+                return;
+            }
+
+            const elapsedMs = Math.max(0, now - station.startTime);
+            const remainingMs = station.mode === 'fixed' && station.endTime ? Math.max(0, station.endTime - now) : 0;
+            const isOvertime = station.mode === 'fixed' && station.endTime && now >= station.endTime;
+            const livePlayCost = calculatePlayCost(station, now);
+            const liveExtras = roundToFive(station.extras || 0);
+            const liveTotal = roundToFive(livePlayCost + liveExtras);
+            const freeTargets = stations.filter(s => s.status === 'free' && s.id !== station.id);
+
+            body.innerHTML = `
+                <div class="space-y-3.5 pb-2">
+                    <div class="bg-slate-950 border ${isOvertime ? 'border-red-500' : 'border-slate-800'} rounded-2xl p-4 text-center space-y-2">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>بدأ: <strong class="text-blue-400 tabular-nums">${formatTime12Hour(station.startTime)}</strong></span>
+                            <span>${station.mode === 'fixed' ? `ينتهي: <strong class="text-amber-400 tabular-nums">${formatTime12Hour(station.endTime)}</strong>` : '<strong class="text-rose-400">وقت مفتوح (Open)</strong>'}</span>
+                        </div>
+                        <div id="modal-live-timer" class="text-3xl font-black tabular-nums ${isOvertime ? 'text-red-400' : (station.mode === 'fixed' ? 'text-amber-400' : 'text-white')}">
+                            ${station.mode === 'fixed' ? formatTimerHHMMSS(remainingMs) : formatTimerHHMMSS(elapsedMs)}
+                        </div>
+                        <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+                            <div>
+                                <span class="text-slate-400 block">اللعب</span>
+                                <strong id="modal-live-play" class="text-white tabular-nums">${livePlayCost} ج</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">مشروبات</span>
+                                <strong class="text-purple-400 tabular-nums">${liveExtras} ج</strong>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block">الإجمالي</span>
+                                <strong id="modal-live-total" class="text-emerald-400 text-sm tabular-nums">${liveTotal} ج</strong>
+                            </div>
+                        </div>
+                        ${station.pushSequenceId ? `<div class="text-[10px] text-emerald-300 bg-emerald-500/10 border border-emerald-500/20 rounded-xl py-1 px-2">🔔 تم جدولة إشعار الخلفية لهذا الجهاز بنجاح</div>` : ''}
+                        ${station.transferNote ? `<div class="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-xl py-1 px-2">${station.transferNote}</div>` : ''}
+                    </div>
+
+                    ${!isBilliards ? `
+                        <button onclick="toggleActiveMulti(${station.id})" class="w-full py-2.5 px-3.5 rounded-2xl border font-black text-xs flex items-center justify-between transition active:scale-95 ${
+                            station.isMulti
+                                ? 'bg-purple-500/20 border-purple-500/50 text-purple-200'
+                                : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-purple-500/40'
+                        }">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="users" class="w-4 h-4 text-purple-400"></i>
+                                <span>الوضع الحالي: <strong>${station.isMulti ? 'مالتي (' + station.multiRate + ' ج/س)' : 'عادي (' + station.singleRate + ' ج/س)'}</strong></span>
+                            </span>
+                            <span class="px-2 py-1 rounded-lg bg-slate-800 text-white text-[11px]">تحويل إلى ${station.isMulti ? 'عادي' : 'مالتي'}</span>
+                        </button>
+                    ` : ''}
+
+                    ${station.mode === 'fixed' ? `
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="extendFixedSession(${station.id}, 30)" class="py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 font-black text-xs transition active:scale-95">
+                                +30 دقيقة إضافية
+                            </button>
+                            <button onclick="extendFixedSession(${station.id}, 60)" class="py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 font-black text-xs transition active:scale-95">
+                                +1 ساعة إضافية
+                            </button>
+                        </div>
+                    ` : ''}
+
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                <i data-lucide="coffee" class="w-4 h-4 text-purple-400"></i>
+                                مشروبات وسناكس (${liveExtras} ج)
+                            </span>
+                            ${liveExtras > 0 ? `<button onclick="resetExtras(${station.id})" class="text-[11px] text-rose-400 font-bold hover:underline">تصفير</button>` : ''}
+                        </div>
+                        <div class="grid grid-cols-4 gap-1.5">
+                            <button onclick="addExtras(${station.id}, 5)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+5 ج</button>
+                            <button onclick="addExtras(${station.id}, 10)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+10 ج</button>
+                            <button onclick="addExtras(${station.id}, 15)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+15 ج</button>
+                            <button onclick="addExtras(${station.id}, 20)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+20 ج</button>
+                        </div>
+                        <div class="flex gap-2 pt-1">
+                            <input type="number" id="custom-extras-input" min="5" step="5" placeholder="مبلغ آخر (مضاعفات 5)..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none focus:border-purple-500">
+                            <button onclick="addCustomExtras(${station.id})" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-black">إضافة</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3">
+                        <button onclick="toggleTransferPanel()" class="w-full flex items-center justify-between text-xs font-black text-blue-300">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="arrow-left-right" class="w-4 h-4"></i>
+                                نقل الجلسة بنفس وقتها إلى جهاز آخر
+                            </span>
+                            <i data-lucide="${transferPanelOpen ? 'chevron-up' : 'chevron-down'}" class="w-4 h-4"></i>
+                        </button>
+
+                        ${transferPanelOpen ? `
+                            <div class="pt-3 mt-2.5 border-t border-slate-800">
+                                ${freeTargets.length === 0 ? `
+                                    <p class="text-xs text-slate-500 text-center py-2">لا توجد أجهزة متاحة للنقل حالياً</p>
+                                ` : `
+                                    <div class="grid grid-cols-2 gap-2">
+                                        ${freeTargets.map(t => `
+                                            <button onclick="transferSession(${station.id}, ${t.id})" class="py-2 px-2.5 rounded-xl bg-slate-900 hover:bg-blue-600/25 border border-slate-700 hover:border-blue-500 text-xs font-bold text-white flex items-center justify-between transition">
+                                                <span>${t.name}</span>
+                                                <span class="text-[10px] text-slate-400">${t.type}</span>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                `}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <button onclick="endSession(${station.id})" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition active:scale-95">
+                        <i data-lucide="square-check-big" class="w-5 h-5"></i>
+                        <span>إنهاء الوقت وحساب الفاتورة (<span id="modal-end-btn-total">${liveTotal} ج</span>)</span>
+                    </button>
+
+                    <div class="pt-1">
+                        ${!cancelConfirmActive ? `
+                            <button onclick="requestCancelSession()" class="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/25 text-rose-400 font-bold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                <span>إلغاء الجلسة (فُتحت بالخطأ بدون تسجيل)</span>
+                            </button>
+                        ` : `
+                            <div class="bg-rose-950/60 border border-rose-500/45 rounded-2xl p-3 space-y-2 text-center">
+                                <p class="text-xs font-black text-rose-200">هل أنت متأكد من إلغاء الجلسة تماماً دون حساب أو تسجيل؟</p>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button onclick="confirmCancelSession(${station.id})" class="py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-black text-xs transition active:scale-95">نعم، إلغاء الجلسة</button>
+                                    <button onclick="abortCancelSession()" class="py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs">تراجع</button>
+                                </div>
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // =========================================================================
+        // ⚙️ عمليات تشغيل وإنهاء ونقل الجلسات (مع جدولة/إلغاء إشعار الخلفية تلقائياً)
+        // =========================================================================
+        function startOpenSession(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station) return;
+            ensureAudioContext();
+
+            const now = Date.now();
+            station.status = 'active';
+            station.mode = 'open';
+            station.isMulti = station.category === 'billiards' ? false : preStartMulti;
+            station.startTime = now;
+            station.segmentStartTime = now;
+            station.accruedCost = 0;
+            station.endTime = null;
+            station.durationMinutes = 0;
+            station.extras = 0;
+            station.alarmTriggered = false;
+            station.transferNote = null;
+            station.hadMultiSwitch = false;
+            station.pushSequenceId = null;
+
+            saveState();
+            renderAllGrids();
+            closeStationModal();
+            showToast(`تم بدء وقت مفتوح على ${station.name}`);
+        }
+
+        function startFixedSession(stationId, minutes) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station) return;
+            ensureAudioContext();
+
+            const now = Date.now();
+            station.status = 'active';
+            station.mode = 'fixed';
+            station.isMulti = station.category === 'billiards' ? false : preStartMulti;
+            station.startTime = now;
+            station.segmentStartTime = now;
+            station.accruedCost = 0;
+            station.durationMinutes = minutes;
+            station.endTime = now + minutes * 60000;
+            station.extras = 0;
+            station.alarmTriggered = false;
+            station.transferNote = null;
+            station.hadMultiSwitch = false;
+            station.pushSequenceId = null;
+
+            saveState();
+            renderAllGrids();
+            closeStationModal();
+            showToast(`تم تشغيل ${station.name} حتى ${formatTime12Hour(station.endTime)}`);
+
+            scheduleStationPushNotification(station);
+        }
+
+        function startCustomFixedSession(stationId) {
+            const input = document.getElementById('custom-minutes-input');
+            if (!input) return;
+            const mins = Math.floor(Number(input.value));
+            if (!mins || mins < 5 || mins > 600) {
+                showToast('أدخل مدة صحيحة بالدقائق (من 5 إلى 600 دقيقة)');
+                return;
+            }
+            startFixedSession(stationId, mins);
+        }
+
+        function resetStationToFree(station) {
+            if (!station) return;
+            station.status = 'free';
+            station.mode = null;
+            station.isMulti = false;
+            station.startTime = null;
+            station.segmentStartTime = null;
+            station.accruedCost = 0;
+            station.endTime = null;
+            station.durationMinutes = 0;
+            station.extras = 0;
+            station.alarmTriggered = false;
+            station.transferNote = null;
+            station.hadMultiSwitch = false;
+            station.pushSequenceId = null;
+        }
+
+        function toggleActiveMulti(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active' || station.category === 'billiards') return;
+
+            const now = Date.now();
+            station.accruedCost = calculateExactPlayCost(station, now);
+            station.segmentStartTime = now;
+            station.isMulti = !station.isMulti;
+            station.hadMultiSwitch = true;
+
+            saveState();
+            renderAllGrids();
+            renderStationModal();
+            showToast(`تم تحويل ${station.name} إلى وضع ${station.isMulti ? 'المالتي' : 'العادي'}`);
+        }
+
+        function extendFixedSession(stationId, extraMinutes) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active' || station.mode !== 'fixed') return;
+
+            const now = Date.now();
+            if (station.endTime && now > station.endTime) {
+                station.accruedCost = calculateExactPlayCost(station, station.endTime);
+                station.segmentStartTime = now;
+                station.endTime = now + extraMinutes * 60000;
+            } else {
+                station.endTime = (station.endTime || now) + extraMinutes * 60000;
+            }
+            station.durationMinutes = (station.durationMinutes || 0) + extraMinutes;
+            station.alarmTriggered = false;
+
+            const anyOvertimeLeft = stations.some(s => s.status === 'active' && s.mode === 'fixed' && s.endTime && now >= s.endTime);
+            if (!anyOvertimeLeft) stopAlarmSound();
+
+            saveState();
+            renderAllGrids();
+            renderStationModal();
+            showToast(`تم تمديد وقت ${station.name} بمقدار ${extraMinutes} دقيقة وتحديث الإشعار`);
+
+            scheduleStationPushNotification(station);
+        }
+
+        function addExtras(stationId, amount) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active') return;
+
+            const added = Math.max(5, roundToFive(amount));
+            station.extras = roundToFive((Number(station.extras) || 0) + added);
+
+            saveState();
+            renderAllGrids();
+            renderStationModal();
+            showToast(`تمت إضافة ${added} ج مشروبات على ${station.name}`);
+        }
+
+        function addCustomExtras(stationId) {
+            const input = document.getElementById('custom-extras-input');
+            if (!input) return;
+            const rawVal = Number(input.value);
+            if (!rawVal || rawVal <= 0) {
+                showToast('أدخل مبلغاً صحيحاً للمشروبات');
+                return;
+            }
+            const rounded = Math.max(5, roundToFive(rawVal));
+            input.value = '';
+            addExtras(stationId, rounded);
+        }
+
+        function resetExtras(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active') return;
+            station.extras = 0;
+
+            saveState();
+            renderAllGrids();
+            renderStationModal();
+            showToast(`تم تصفير مشروبات ${station.name}`);
+        }
+
+        function transferSession(fromId, toId) {
+            const fromSt = stations.find(s => s.id === fromId);
+            const toSt = stations.find(s => s.id === toId);
+            if (!fromSt || !toSt || fromSt.status !== 'active' || toSt.status !== 'free') return;
+
+            const now = Date.now();
+            const accrued = calculateExactPlayCost(fromSt, now);
+
+            cancelStationPushNotification(fromSt);
+
+            toSt.status = 'active';
+            toSt.mode = fromSt.mode;
+            toSt.isMulti = toSt.category === 'billiards' ? false : fromSt.isMulti;
+            toSt.startTime = fromSt.startTime;
+            toSt.segmentStartTime = now;
+            toSt.accruedCost = accrued;
+            toSt.endTime = fromSt.endTime;
+            toSt.durationMinutes = fromSt.durationMinutes;
+            toSt.extras = fromSt.extras;
+            toSt.alarmTriggered = fromSt.alarmTriggered;
+            toSt.hadMultiSwitch = fromSt.hadMultiSwitch;
+            toSt.pushSequenceId = null;
+
+            const newNote = `منقول من ${fromSt.name} الساعة ${formatTime12Hour(now)}`;
+            toSt.transferNote = fromSt.transferNote ? `${fromSt.transferNote} ← ${newNote}` : newNote;
+
+            resetStationToFree(fromSt);
+
+            saveState();
+            renderAllGrids();
+            selectedStationId = toId;
+            transferPanelOpen = false;
+            cancelConfirmActive = false;
+            renderStationModal();
+            showToast(`تم نقل الجلسة إلى ${toSt.name} بنفس وقتها بنجاح`);
+
+            if (toSt.mode === 'fixed' && toSt.endTime && toSt.endTime > now) {
+                scheduleStationPushNotification(toSt);
+            }
+        }
+
+        function endSession(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active') return;
+
+            const now = Date.now();
+            const effectiveEnd = (station.mode === 'fixed' && station.endTime && now >= station.endTime)
+                ? station.endTime
+                : now;
+
+            const playCost = calculatePlayCost(station, now);
+            const extrasCost = roundToFive(station.extras || 0);
+            const totalCost = roundToFive(playCost + extrasCost);
+
+            let playTypeLabel = 'عادي';
+            if (station.category === 'billiards') {
+                playTypeLabel = 'بلياردو';
+            } else if (station.hadMultiSwitch) {
+                playTypeLabel = 'مختلط (عادي + مالتي)';
+            } else if (station.isMulti) {
+                playTypeLabel = 'مالتي';
+            }
+
+            const record = {
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                stationId: station.id,
+                stationName: station.name,
+                stationType: station.type,
+                stationCategory: station.category,
+                mode: station.mode,
+                playTypeLabel: playTypeLabel,
+                startTime: station.startTime,
+                endTime: now,
+                durationMs: Math.max(60000, effectiveEnd - station.startTime),
+                playCost: playCost,
+                extrasCost: extrasCost,
+                totalCost: totalCost,
+                transferNote: station.transferNote || null
+            };
+
+            cancelStationPushNotification(station);
+
+            shiftHistory.unshift(record);
+            resetStationToFree(station);
+
+            const anyOvertimeLeft = stations.some(s => s.status === 'active' && s.mode === 'fixed' && s.endTime && now >= s.endTime);
+            if (!anyOvertimeLeft) stopAlarmSound();
+
+            saveState();
+            renderAllGrids();
+            closeStationModal();
+            showInvoiceModal(record);
+        }
+
+        // =========================================================================
+        // 🧾 نافذة الفاتورة النهائية (Invoice Modal)
+        // =========================================================================
+        function showInvoiceModal(record) {
+            document.getElementById('inv-station-info').innerText = `${record.stationName} (${record.stationType})`;
+            document.getElementById('inv-mode').innerText = record.mode === 'open' ? 'وقت مفتوح (Open)' : 'وقت محدد';
+            document.getElementById('inv-play-type').innerText = record.playTypeLabel || 'عادي';
+
+            const transferRow = document.getElementById('inv-transfer-row');
+            const transferNoteEl = document.getElementById('inv-transfer-note');
+            if (record.transferNote) {
+                transferRow.classList.remove('hidden');
+                transferNoteEl.innerText = record.transferNote;
+            } else {
+                transferRow.classList.add('hidden');
+                transferNoteEl.innerText = '';
+            }
+
+            document.getElementById('inv-start').innerText = formatTime12Hour(record.startTime);
+            document.getElementById('inv-end').innerText = formatTime12Hour(record.endTime);
+            document.getElementById('inv-duration').innerText = formatDurationArabic(record.durationMs);
+            document.getElementById('inv-play-cost').innerText = `${record.playCost} ج`;
+            document.getElementById('inv-extras-cost').innerText = `${record.extrasCost} ج`;
+            document.getElementById('inv-total').innerText = `${record.totalCost} جنيه`;
+
+            document.getElementById('invoice-modal').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeInvoiceModal() {
+            const modal = document.getElementById('invoice-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        // =========================================================================
+        // 📋 نافذة سجل اليومية العام (Shift History Modal)
+        // =========================================================================
+        function openShiftModal(filter = 'all') {
+            shiftModalFilter = filter;
+            document.getElementById('shift-modal').classList.remove('hidden');
+            renderShiftModal();
+        }
+
+        function closeShiftModal() {
+            const modal = document.getElementById('shift-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function setShiftModalFilter(filter) {
+            shiftModalFilter = filter;
+            renderShiftModal();
+        }
+
+        function renderShiftModal() {
+            const filterBar = document.getElementById('shift-filter-bar');
+            const listEl = document.getElementById('shift-history-list');
+            if (!filterBar || !listEl) return;
+
+            const filterButtons = [
+                `<button onclick="setShiftModalFilter('all')" class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition ${shiftModalFilter === 'all' ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">الكل</button>`
+            ].concat(
+                stations.map(st => {
+                    const active = shiftModalFilter === st.id;
+                    return `<button onclick="setShiftModalFilter(${st.id})" class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition ${active ? 'bg-blue-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">${st.name}</button>`;
+                })
+            );
+            filterBar.innerHTML = filterButtons.join('');
+
+            const filtered = shiftModalFilter === 'all'
+                ? shiftHistory
+                : shiftHistory.filter(h => h.stationId === shiftModalFilter);
+
+            const totalRev = roundToFive(filtered.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
+            const selectedSt = stations.find(s => s.id === shiftModalFilter);
+            const labelText = shiftModalFilter === 'all' ? 'الكل' : (selectedSt ? selectedSt.name : '');
+
+            document.getElementById('shift-revenue-label').innerText = `إجمالي إيراد الوردية (${labelText})`;
+            document.getElementById('shift-total-revenue').innerText = `${totalRev} جنيه`;
+            document.getElementById('shift-total-count').innerText = String(filtered.length);
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-10 text-slate-500 text-sm font-bold">لا توجد جلسات مسجلة حتى الآن</div>`;
+            } else {
+                listEl.innerHTML = filtered.map(h => {
+                    const isBilliards = h.stationCategory === 'billiards';
+                    const isPS5 = h.stationType === 'PS5';
+                    const typeBadgeClass = isBilliards
+                        ? 'bg-emerald-500/20 text-emerald-300'
+                        : (isPS5 ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300');
+
+                    return `
+                        <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3.5 text-xs space-y-1.5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${typeBadgeClass}">${h.stationType}</span>
+                                    <span class="font-black text-white text-sm">${h.stationName}</span>
+                                    <span class="text-[10px] text-slate-400">(${h.mode === 'open' ? 'أوبن' : 'محدد'})</span>
+                                </div>
+                                <span class="font-black text-emerald-400 text-base tabular-nums">${h.totalCost} ج</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>من <strong class="text-blue-300 tabular-nums">${formatTime12Hour(h.startTime)}</strong> إلى <strong class="text-amber-300 tabular-nums">${formatTime12Hour(h.endTime)}</strong></span>
+                                <span>${formatDurationArabic(h.durationMs)}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-[11px] text-slate-400 pt-1 border-t border-slate-800/80">
+                                <span>${h.playTypeLabel || 'عادي'} (لعب: ${h.playCost} ج)</span>
+                                <span>مشروبات: ${h.extrasCost || 0} ج</span>
+                            </div>
+                            ${h.transferNote ? `<div class="text-[10px] text-amber-300 bg-amber-500/10 px-2 py-1 rounded-lg">${h.transferNote}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function requestCancelSession() {
+            cancelConfirmActive = true;
+            renderStationModal();
+        }
+
+        function abortCancelSession() {
+            cancelConfirmActive = false;
+            renderStationModal();
+        }
+
+        function confirmCancelSession(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station) return;
+
+            cancelStationPushNotification(station);
+            resetStationToFree(station);
+
+            const now = Date.now();
+            const anyOvertimeLeft = stations.some(s => s.status === 'active' && s.mode === 'fixed' && s.endTime && now >= s.endTime);
+            if (!anyOvertimeLeft) stopAlarmSound();
+
+            saveState();
+            renderAllGrids();
+            closeStationModal();
+            showToast(`تم إلغاء جلسة ${station.name} وإلغاء إشعارها`);
+        }
+
+        // =========================================================================
+        // 💸 إدارة مصروفات الشفت (Shift Expenses)
+        // =========================================================================
+        function getTotalShiftExpenses() {
+            return shiftExpenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+        }
+
+        function openExpensesModal() {
+            document.getElementById('expenses-modal').classList.remove('hidden');
+            renderExpensesModal();
+        }
+
+        function closeExpensesModal() {
+            const modal = document.getElementById('expenses-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function setExpenseReasonPreset(text) {
+            const reasonInput = document.getElementById('exp-reason-input');
+            if (reasonInput) {
+                reasonInput.value = text;
+                reasonInput.focus();
+            }
+        }
+
+        function addShiftExpense() {
+            const amountEl = document.getElementById('exp-amount-input');
+            const reasonEl = document.getElementById('exp-reason-input');
+            if (!amountEl || !reasonEl) return;
+
+            const amount = Math.round(Number(amountEl.value));
+            const reason = (reasonEl.value || '').trim();
+
+            if (!amount || amount <= 0) {
+                showToast('أدخل مبلغ المصروف بشكل صحيح');
+                return;
+            }
+            if (!reason) {
+                showToast('اكتب سبب المصروف (مثلاً: شاي وسكر)');
+                return;
+            }
+
+            shiftExpenses.unshift({
+                id: Date.now() + Math.floor(Math.random() * 1000),
+                amount: amount,
+                reason: reason,
+                time: Date.now()
+            });
+
+            amountEl.value = '';
+            reasonEl.value = '';
+            saveState();
+            renderAllGrids();
+            renderExpensesModal();
+            showToast(`تم تسجيل مصروف ${amount} ج (${reason})`);
+        }
+
+        function deleteShiftExpense(expenseId) {
+            shiftExpenses = shiftExpenses.filter(e => e.id !== expenseId);
+            saveState();
+            renderAllGrids();
+            renderExpensesModal();
+            showToast('تم حذف المصروف');
+        }
+
+        function renderExpensesModal() {
+            const totalEl = document.getElementById('exp-total-display');
+            const listEl = document.getElementById('exp-list-container');
+            if (!totalEl || !listEl) return;
+
+            totalEl.innerText = `${getTotalShiftExpenses()} ج`;
+
+            if (shiftExpenses.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs font-bold">لا توجد مصروفات مسجلة في هذا الشفت</div>`;
+            } else {
+                listEl.innerHTML = shiftExpenses.map(exp => `
+                    <div class="flex items-center justify-between bg-slate-950/90 border border-slate-800 rounded-2xl px-3.5 py-2.5 text-xs">
+                        <div>
+                            <div class="font-black text-white">${exp.reason}</div>
+                            <div class="text-[10px] text-slate-400 tabular-nums">الساعة ${formatTime12Hour(exp.time)}</div>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="font-black text-orange-400 text-sm tabular-nums">- ${exp.amount} ج</span>
+                            <button onclick="deleteShiftExpense(${exp.id})" class="p-1.5 rounded-lg bg-rose-500/15 hover:bg-rose-500/30 text-rose-400" title="حذف">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        // =========================================================================
+        // 🌅 نافذة بدء يوم جديد (New Day Modal)
+        // =========================================================================
+        function openNewDayModal() {
+            const totalRev = shiftHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0);
+            const totalExp = getTotalShiftExpenses();
+            const activeStations = stations.filter(s => s.status === 'active');
+
+            document.getElementById('nd-current-revenue').innerText = `${roundToFive(totalRev)} ج`;
+            const expEl = document.getElementById('nd-current-expenses');
+            if (expEl) expEl.innerText = `${totalExp} ج`;
+            document.getElementById('nd-current-sessions').innerText = `${shiftHistory.length}`;
+
+            const activeWarning = document.getElementById('nd-active-warning');
+            const activeWarningTitle = document.getElementById('nd-active-warning-title');
+            const actionsContainer = document.getElementById('nd-actions-container');
+
+            if (activeStations.length > 0) {
+                activeWarning.classList.remove('hidden');
+                activeWarningTitle.innerText = `تنبيه: يوجد ${activeStations.length} جهاز شغال حالياً!`;
+                actionsContainer.innerHTML = `
+                    <button onclick="executeNewDay(false)" class="w-full py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm transition active:scale-95">
+                        تصفير السجلات فقط (ترك الأجهزة الشغالة تعمل)
+                    </button>
+                    <button onclick="executeNewDay(true)" class="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm transition active:scale-95">
+                        تصفير شامل (مسح السجلات وإيقاف كل الأجهزة)
+                    </button>
+                    <button onclick="closeNewDayModal()" class="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs">
+                        إلغاء
+                    </button>
+                `;
+            } else {
+                activeWarning.classList.add('hidden');
+                actionsContainer.innerHTML = `
+                    <button onclick="executeNewDay(true)" class="w-full py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-black text-sm transition active:scale-95">
+                        تأكيد بدء يوم جديد وتصفير السجلات
+                    </button>
+                    <button onclick="closeNewDayModal()" class="w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs">
+                        إلغاء
+                    </button>
+                `;
+            }
+
+            document.getElementById('new-day-modal').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeNewDayModal() {
+            const modal = document.getElementById('new-day-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function executeNewDay(resetActiveStations) {
+            shiftHistory = [];
+            shiftExpenses = [];
+            if (resetActiveStations) {
+                stations.forEach(st => {
+                    cancelStationPushNotification(st);
+                    resetStationToFree(st);
+                });
+                stopAlarmSound();
+            }
+            saveState();
+            renderAllGrids();
+            closeNewDayModal();
+            showToast('تم تصفير السجلات والمصروفات وبدء يوم جديد على نظافة');
+        }
+
+        // =========================================================================
+        // 📤 نافذة تسليم الشفت للمدير (Shift Handover)
+        // =========================================================================
+        function buildShiftHandoverPayload() {
+            const nowDate = new Date();
+            const dateKey = getLocalDateKey(nowDate);
+            const totalRevenue = roundToFive(shiftHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
+            const totalExtras = roundToFive(shiftHistory.reduce((sum, h) => sum + (Number(h.extrasCost) || 0), 0));
+            const totalExpenses = getTotalShiftExpenses();
+            const netCash = totalRevenue - totalExpenses;
+
+            const stationsBreakdown = stations.map(st => {
+                const stSessions = shiftHistory
+                    .filter(h => h.stationId === st.id)
+                    .slice()
+                    .sort((a, b) => (a.startTime || 0) - (b.startTime || 0));
+
+                const stTotal = roundToFive(stSessions.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
+                return {
+                    stationId: st.id,
+                    stationName: st.name,
+                    stationType: st.type,
+                    stationCategory: st.category,
+                    total: stTotal,
+                    sessions: stSessions
+                };
+            });
+
+            return {
+                id: Date.now(),
+                dateKey: dateKey,
+                dateArabic: nowDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+                handedOverAt: nowDate.toISOString(),
+                handedOverTimeLabel: formatTime12Hour(nowDate.getTime()),
+                shiftType: currentUser ? currentUser.shiftType : 'morning',
+                shiftLabel: currentUser ? currentUser.shiftLabel : 'شفت الصالة',
+                staffUsername: currentUser ? currentUser.username : '',
+                totalRevenue: totalRevenue,
+                totalExpenses: totalExpenses,
+                netCash: netCash,
+                expenses: shiftExpenses.map(e => ({ ...e })),
+                totalExtras: totalExtras,
+                totalSessions: shiftHistory.length,
+                stationsBreakdown: stationsBreakdown
+            };
+        }
+
+        function renderStationBreakdownCardHTML(stData) {
+            const isBilliards = stData.stationCategory === 'billiards';
+            const isPS5 = stData.stationType === 'PS5';
+            const hasSessions = stData.sessions && stData.sessions.length > 0;
+
+            return `
+                <div class="bg-slate-950/90 border ${hasSessions ? 'border-slate-700' : 'border-slate-800/60 opacity-65'} rounded-2xl p-3">
+                    <div class="flex items-center justify-between pb-2 ${hasSessions ? 'border-b border-slate-800' : ''}">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-lg text-[10px] font-black ${isBilliards ? 'bg-emerald-500/20 text-emerald-300' : (isPS5 ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300')}">${stData.stationType}</span>
+                            <span class="font-black text-white text-sm">${stData.stationName}</span>
+                            <span class="text-[11px] text-slate-400">(${stData.sessions.length} جلسة)</span>
+                        </div>
+                        <span class="font-black text-sm tabular-nums ${stData.total > 0 ? 'text-emerald-400' : 'text-slate-500'}">${stData.total} ج</span>
+                    </div>
+                    ${hasSessions ? `
+                        <div class="pt-2 space-y-1.5">
+                            ${stData.sessions.map(ses => `
+                                <div class="flex items-center justify-between text-xs bg-slate-900/90 rounded-xl px-2.5 py-2 border border-slate-800/80">
+                                    <div class="space-y-0.5">
+                                        <div class="text-slate-200 font-bold">
+                                            من <span class="text-blue-300 tabular-nums">${formatTime12Hour(ses.startTime)}</span> إلى <span class="text-amber-300 tabular-nums">${formatTime12Hour(ses.endTime)}</span>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400">
+                                            ${ses.playTypeLabel || 'عادي'} • ${formatDurationArabic(ses.durationMs)} ${ses.extrasCost ? `• مشروبات ${ses.extrasCost} ج` : ''}
+                                        </div>
+                                    </div>
+                                    <span class="font-black text-emerald-400 text-sm tabular-nums shrink-0">${ses.totalCost} ج</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function openHandoverModal() {
+            const payload = buildShiftHandoverPayload();
+            document.getElementById('ho-modal-title').innerText = `تسليم ${payload.shiftLabel} - نور الإسلام`;
+            document.getElementById('ho-subtitle').innerText = `${payload.dateArabic} • الساعة ${payload.handedOverTimeLabel}`;
+            document.getElementById('ho-total-revenue').innerText = `${payload.totalRevenue} ج`;
+            document.getElementById('ho-total-sessions').innerText = String(payload.totalSessions);
+            document.getElementById('ho-total-extras').innerText = `${payload.totalExtras} ج`;
+            document.getElementById('ho-total-expenses').innerText = `${payload.totalExpenses} ج`;
+            document.getElementById('ho-net-cash').innerText = `${payload.netCash} ج`;
+
+            const activeCount = stations.filter(s => s.status === 'active').length;
+            const warnEl = document.getElementById('ho-active-warning');
+            if (activeCount > 0) {
+                warnEl.classList.remove('hidden');
+                document.getElementById('ho-active-warning-text').innerText = `تنبيه: يوجد ${activeCount} جهاز ما زال شغالاً الآن؛ سيتم تسليم الجلسات المنتهية فقط وستظل الأجهزة الشغالة مستمرة.`;
+            } else {
+                warnEl.classList.add('hidden');
+            }
+
+            const psBreakdown = payload.stationsBreakdown.filter(s => s.stationCategory === 'ps');
+            const billiardsBreakdown = payload.stationsBreakdown.filter(s => s.stationCategory === 'billiards');
+
+            const expensesSectionHTML = payload.expenses.length > 0 ? `
+                <div class="text-xs font-black text-orange-300 flex items-center gap-1.5 pt-3 border-t border-slate-800">
+                    <i data-lucide="banknote" class="w-4 h-4"></i> مصروفات الشفت المخصومة (${payload.totalExpenses} ج)
+                </div>
+                <div class="bg-slate-950/90 border border-orange-500/25 rounded-2xl p-3 space-y-1.5">
+                    ${payload.expenses.map(exp => `
+                        <div class="flex items-center justify-between text-xs bg-slate-900/90 rounded-xl px-2.5 py-2 border border-slate-800/80">
+                            <div>
+                                <span class="font-bold text-slate-200">${exp.reason}</span>
+                                <span class="text-[10px] text-slate-400 mr-1.5">(${formatTime12Hour(exp.time)})</span>
+                            </div>
+                            <span class="font-black text-orange-400 tabular-nums">- ${exp.amount} ج</span>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : '';
+
+            document.getElementById('ho-stations-breakdown').innerHTML = `
+                <div class="text-xs font-black text-blue-300 flex items-center gap-1.5">
+                    <i data-lucide="gamepad-2" class="w-4 h-4"></i> أجهزة البلايستيشن (1 إلى 8)
+                </div>
+                ${psBreakdown.map(renderStationBreakdownCardHTML).join('')}
+                <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5 pt-3 border-t border-slate-800">
+                    <i data-lucide="circle-dot" class="w-4 h-4"></i> قسم البلياردو (طرابيزتين)
+                </div>
+                ${billiardsBreakdown.map(renderStationBreakdownCardHTML).join('')}
+                ${expensesSectionHTML}
+            `;
+
+            const archSection = document.getElementById('ho-archived-section');
+            const archList = document.getElementById('ho-archived-list');
+            const archCount = document.getElementById('ho-archived-count');
+            if (handedOverShifts.length > 0) {
+                archSection.classList.remove('hidden');
+                archCount.innerText = String(handedOverShifts.length);
+                archList.innerHTML = handedOverShifts.slice(0, 5).map(sh => {
+                    const net = sh.netCash !== undefined ? sh.netCash : (Number(sh.totalRevenue) || 0);
+                    return `
+                        <div class="flex items-center justify-between bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
+                            <span class="text-slate-300 font-bold">${sh.shiftLabel} (${sh.dateKey})</span>
+                            <span class="text-emerald-400 font-black tabular-nums">صافي ${net} ج</span>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                archSection.classList.add('hidden');
+            }
+
+            document.getElementById('handover-modal').classList.remove('hidden');
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function closeHandoverModal() {
+            const modal = document.getElementById('handover-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function confirmShiftHandover() {
+            const payload = buildShiftHandoverPayload();
+            handedOverShifts.unshift(payload);
+            shiftHistory = [];
+            shiftExpenses = [];
+            saveState();
+
+            renderAllGrids();
+            closeHandoverModal();
+
+            const uploaded = await sendShiftToManagerCloud(payload);
+            showToast(uploaded
+                ? `تم تسليم ${payload.shiftLabel} ورفعه للمدير سحابياً بنجاح!`
+                : `تم تسليم ${payload.shiftLabel} وحفظه في سجل المدير بنجاح!`);
+        }
+
+        // =========================================================================
+        // 👑 لوحة تحكم المدير (الواجهة السريعة لليوم + التقويم والشهور والأيام)
+        // =========================================================================
+        function switchManagerView(view) {
+            managerActiveView = view;
+            const todayTab = document.getElementById('mgr-tab-today');
+            const calTab = document.getElementById('mgr-tab-calendar');
+            const todayView = document.getElementById('mgr-view-today');
+            const calView = document.getElementById('mgr-view-calendar');
+
+            if (view === 'today') {
+                todayTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg';
+                calTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
+                todayView.classList.remove('hidden');
+                calView.classList.add('hidden');
+                renderManagerTodayView();
+            } else {
+                calTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg';
+                todayTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
+                calView.classList.remove('hidden');
+                todayView.classList.add('hidden');
+                renderManagerCalendarView();
+            }
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function renderManagerShiftCardHTML(shift) {
+            const isEvening = shift.shiftType === 'evening';
+            const badgeStyle = isEvening
+                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/35'
+                : 'bg-amber-500/20 text-amber-300 border border-amber-500/35';
+
+            const gross = Number(shift.totalRevenue) || 0;
+            const expensesTotal = Number(shift.totalExpenses) || 0;
+            const netCash = shift.netCash !== undefined ? Number(shift.netCash) : (gross - expensesTotal);
+            const expensesList = Array.isArray(shift.expenses) ? shift.expenses : [];
+
+            const breakdown = Array.isArray(shift.stationsBreakdown) ? shift.stationsBreakdown : [];
+            const psList = breakdown.filter(s => s.stationCategory !== 'billiards');
+            const billiardsList = breakdown.filter(s => s.stationCategory === 'billiards');
+
+            return `
+                <div class="bg-slate-950/90 border border-slate-800 rounded-3xl p-4 space-y-3">
+                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                        <div class="flex items-center gap-2">
+                            <span class="px-3 py-1 rounded-xl text-xs font-black ${badgeStyle}">${shift.shiftLabel || 'شفت'}</span>
+                            <span class="text-xs text-slate-400 font-bold">سُلِّم الساعة ${shift.handedOverTimeLabel || '--:--'}</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs">
+                            <span class="text-slate-400">إيراد: <strong class="text-blue-400 tabular-nums">${gross} ج</strong></span>
+                            ${expensesTotal > 0 ? `<span class="text-slate-400">مصروف: <strong class="text-orange-400 tabular-nums">-${expensesTotal} ج</strong></span>` : ''}
+                            <span class="px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-black tabular-nums">صافي الدرج: ${netCash} ج</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        ${psList.map(renderStationBreakdownCardHTML).join('')}
+                    </div>
+
+                    ${billiardsList.length > 0 ? `
+                        <div class="pt-3 border-t border-slate-800/80 space-y-2">
+                            <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
+                                <i data-lucide="circle-dot" class="w-4 h-4"></i> قسم البلياردو (طرابيزتين)
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                ${billiardsList.map(renderStationBreakdownCardHTML).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${expensesList.length > 0 ? `
+                        <div class="pt-3 border-t border-slate-800/80 space-y-2">
+                            <div class="text-xs font-black text-orange-300 flex items-center gap-1.5">
+                                <i data-lucide="banknote" class="w-4 h-4"></i> مصروفات الشفت (${expensesTotal} ج)
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                ${expensesList.map(exp => `
+                                    <div class="flex items-center justify-between bg-slate-900/90 border border-orange-500/20 rounded-xl px-3 py-2 text-xs">
+                                        <div>
+                                            <span class="font-bold text-slate-200">${exp.reason}</span>
+                                            <span class="text-[10px] text-slate-400 mr-1">(${formatTime12Hour(exp.time)})</span>
+                                        </div>
+                                        <span class="font-black text-orange-400 tabular-nums">- ${exp.amount} ج</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderManagerTodayView() {
+            const todayKey = getLocalDateKey(new Date());
+            const todayShifts = handedOverShifts.filter(s => s.dateKey === todayKey);
+            const todayGross = roundToFive(todayShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0));
+            const todayExpenses = todayShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+            const todayNet = todayGross - todayExpenses;
+
+            document.getElementById('mgr-today-title').innerText = `تقرير اليوم — ${new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
+            document.getElementById('mgr-today-gross').innerText = `${todayGross} ج`;
+            document.getElementById('mgr-today-expenses').innerText = `${todayExpenses} ج`;
+            document.getElementById('mgr-today-total').innerText = `${todayNet} ج`;
+
+            const container = document.getElementById('mgr-today-shifts-container');
+            if (todayShifts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-12 bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl">
+                        <i data-lucide="inbox" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
+                        <p class="text-sm font-black text-slate-400">لم يتم تسليم أي شفت لليوم حتى الآن</p>
+                        <p class="text-xs text-slate-500 mt-1">سيظهر هنا شفت الفترة الصباحية والمسائية فور تسليمهما</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = todayShifts.map(renderManagerShiftCardHTML).join('');
+            }
+        }
+
+        function changeManagerMonth(delta) {
+            managerCalendarDate = new Date(managerCalendarDate.getFullYear(), managerCalendarDate.getMonth() + delta, 1);
+            renderManagerCalendarView();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function selectManagerDay(dateKey) {
+            managerSelectedDateKey = dateKey;
+            renderManagerCalendarView();
+            if (window.lucide) lucide.createIcons();
+        }
+
+        function renderManagerCalendarView() {
+            const year = managerCalendarDate.getFullYear();
+            const month = managerCalendarDate.getMonth();
+            const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
+
+            const monthTitle = managerCalendarDate.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+            document.getElementById('mgr-cal-month-title').innerText = monthTitle;
+
+            const monthShifts = handedOverShifts.filter(s => (s.dateKey || '').startsWith(monthPrefix));
+            const monthGross = roundToFive(monthShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0));
+            const monthExpenses = monthShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+            const monthNet = monthGross - monthExpenses;
+            const monthSessions = monthShifts.reduce((sum, s) => sum + (Number(s.totalSessions) || 0), 0);
+
+            document.getElementById('mgr-cal-month-gross').innerText = `${monthGross} ج`;
+            document.getElementById('mgr-cal-month-expenses').innerText = `${monthExpenses} ج`;
+            document.getElementById('mgr-cal-month-revenue').innerText = `${monthNet} ج`;
+            document.getElementById('mgr-cal-month-shifts').innerText = String(monthShifts.length);
+            document.getElementById('mgr-cal-month-sessions').innerText = String(monthSessions);
+
+            const firstDayOfMonth = new Date(year, month, 1);
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const startOffset = (firstDayOfMonth.getDay() + 1) % 7;
+            const todayKey = getLocalDateKey(new Date());
+
+            let cellsHTML = '';
+            for (let i = 0; i < startOffset; i++) {
+                cellsHTML += `<div class="rounded-2xl p-2 bg-slate-950/30 border border-slate-900/50"></div>`;
+            }
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayShifts = monthShifts.filter(s => s.dateKey === key);
+                const dayGross = roundToFive(dayShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0));
+                const dayExp = dayShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+                const dayNet = dayGross - dayExp;
+                const isSelected = key === managerSelectedDateKey;
+                const isToday = key === todayKey;
+
+                const hasMorning = dayShifts.some(s => s.shiftType === 'morning');
+                const hasEvening = dayShifts.some(s => s.shiftType === 'evening');
+
+                cellsHTML += `
+                    <button onclick="selectManagerDay('${key}')" class="rounded-2xl p-1.5 sm:p-2 border text-center transition flex flex-col items-center justify-between min-h-[62px] sm:min-h-[72px] ${
+                        isSelected
+                            ? 'bg-amber-500/20 border-amber-400 shadow-lg shadow-amber-500/15'
+                            : isToday
+                                ? 'bg-blue-500/15 border-blue-500/50'
+                                : dayShifts.length > 0
+                                    ? 'bg-slate-950 border-emerald-500/40 hover:border-emerald-400'
+                                    : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
+                    }">
+                        <span class="text-xs sm:text-sm font-black ${isSelected ? 'text-amber-300' : 'text-white'} tabular-nums">${day}</span>
+                        ${dayShifts.length > 0
+                            ? `<span class="text-[10px] font-black text-emerald-400 tabular-nums leading-tight">${dayNet}ج</span>`
+                            : `<span class="text-[9px] text-slate-600">-</span>`
+                        }
+                        <div class="flex items-center gap-1 mt-0.5">
+                            ${hasMorning ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-400" title="صباحي"></span>' : ''}
+                            ${hasEvening ? '<span class="w-1.5 h-1.5 rounded-full bg-indigo-400" title="مسائي"></span>' : ''}
+                        </div>
+                    </button>
+                `;
+            }
+
+            document.getElementById('mgr-cal-days-grid').innerHTML = cellsHTML;
+
+            const selectedShifts = handedOverShifts.filter(s => s.dateKey === managerSelectedDateKey);
+            const selectedGross = roundToFive(selectedShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0));
+            const selectedExp = selectedShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+            const selectedNet = selectedGross - selectedExp;
+            const detailsContainer = document.getElementById('mgr-selected-day-details');
+
+            const [sy, sm, sd] = managerSelectedDateKey.split('-').map(Number);
+            const selectedDateLabel = new Date(sy, sm - 1, sd).toLocaleDateString('ar-EG', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+
+            detailsContainer.innerHTML = `
+                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                    <div>
+                        <span class="text-[11px] text-amber-400 font-bold block">تفاصيل اليوم المختار</span>
+                        <h3 class="text-base sm:text-lg font-black text-white">${selectedDateLabel}</h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        ${selectedExp > 0 ? `
+                            <div class="bg-orange-500/15 border border-orange-500/30 rounded-xl px-3 py-1.5 text-center">
+                                <span class="text-[10px] text-orange-300 font-bold block">مصروفات</span>
+                                <span class="text-sm font-black text-orange-400 tabular-nums">${selectedExp} ج</span>
+                            </div>
+                        ` : ''}
+                        <div class="bg-emerald-500/15 border border-emerald-500/30 rounded-xl px-3.5 py-1.5 text-center">
+                            <span class="text-[10px] text-emerald-300 font-bold block">صافي اليوم</span>
+                            <span class="text-lg font-black text-emerald-400 tabular-nums">${selectedNet} جنيه</span>
+                        </div>
+                    </div>
+                </div>
+                ${selectedShifts.length === 0 ? `
+                    <div class="text-center py-8 text-slate-500 text-sm font-bold">
+                        لا توجد شفتات مسجلة في هذا اليوم
+                    </div>
+                ` : `
+                    <div class="space-y-4">
+                        ${selectedShifts.map(renderManagerShiftCardHTML).join('')}
+                    </div>
+                `}
+            `;
+        }
+
+        // =========================================================================
+        // ⏱️ الحلقة الحية (الساعة، العدادات اللحظية، والمنبه)
+        // =========================================================================
+        function updateLiveClockAndDate() {
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+            const clockStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+            const liveDateEl = document.getElementById('live-date');
+            const liveClockEl = document.getElementById('live-clock');
+            const mgrDateEl = document.getElementById('mgr-live-date');
+
+            if (liveDateEl) liveDateEl.innerText = dateStr;
+            if (liveClockEl) liveClockEl.innerText = clockStr;
+            if (mgrDateEl) mgrDateEl.innerText = `${dateStr} • ${clockStr}`;
+        }
+
+        function startLiveLoop() {
+            setInterval(() => {
+                updateLiveClockAndDate();
+
+                if (!currentUser || currentUser.role !== 'staff') return;
+
+                const now = Date.now();
+                let stateChanged = false;
+
+                stations.forEach(station => {
+                    if (station.status === 'active' && station.mode === 'fixed' && station.endTime && now >= station.endTime && !station.alarmTriggered) {
+                        station.alarmTriggered = true;
+                        stateChanged = true;
+                        triggerStationAlarm(station);
+                    }
+                });
+
+                if (stateChanged) saveState();
+                renderAllGrids();
+
+                if (selectedStationId && modalActiveTab === 'control') {
+                    const st = stations.find(s => s.id === selectedStationId);
+                    if (st && st.status === 'active') {
+                        const timerEl = document.getElementById('modal-live-timer');
+                        const playEl = document.getElementById('modal-live-play');
+                        const totalEl = document.getElementById('modal-live-total');
+                        const endBtnTotalEl = document.getElementById('modal-end-btn-total');
+                        if (timerEl) {
+                            const ms = st.mode === 'fixed' && st.endTime ? Math.max(0, st.endTime - now) : Math.max(0, now - st.startTime);
+                            timerEl.innerText = formatTimerHHMMSS(ms);
+                        }
+                        const playCost = calculatePlayCost(st, now);
+                        const totalCost = roundToFive(playCost + roundToFive(st.extras || 0));
+                        if (playEl) playEl.innerText = `${playCost} ج`;
+                        if (totalEl) totalEl.innerText = `${totalCost} ج`;
+                        if (endBtnTotalEl) endBtnTotalEl.innerText = `${totalCost} ج`;
+                    }
+                }
+            }, 1000);
+        }
+
+        // =========================================================================
+        // 🚀 تشغيل التطبيق عند تحميل الصفحة
+        // =========================================================================
+        function bootApp() {
+            loadState();
+            try {
+                const savedSession = localStorage.getItem(STORAGE_SESSION_USER_KEY);
+                if (savedSession) {
+                    currentUser = JSON.parse(savedSession);
+                }
+            } catch (e) {
+                currentUser = null;
+            }
+
+            applyAuthenticatedView();
+            startLiveLoop();
+            if (window.lucide) lucide.createIcons();
+            initCloudConnection();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bootApp);
+        } else {
+            bootApp();
+        }
+    </script>
+</body>
+</html>
