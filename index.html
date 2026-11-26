@@ -8,7 +8,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>بلايستيشن نور الإسلام - إدارة الصالة</title>
 
-    <!-- تنسيقات أساسية فورية تمنع ظهور شاشة بيضاء أثناء التحميل -->
     <style>
         html, body {
             margin: 0;
@@ -60,18 +59,20 @@
         .tabular-nums {
             font-variant-numeric: tabular-nums;
         }
+        @keyframes alarmFlash {
+            0%, 100% { border-color: #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.35); }
+            50% { border-color: #facc15; box-shadow: 0 0 8px rgba(250, 204, 21, 0.15); }
+        }
+        .alarm-card-flash {
+            animation: alarmFlash 1s infinite;
+        }
     </style>
 
-    <!-- تحميل خط Cairo بدون تعطيل عرض الصفحة -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet"></noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
-    <!-- أيقونات Lucide من سيرفر jsDelivr الأسرع وبدون تعطيل التحميل -->
     <script defer src="https://cdn.jsdelivr.net/npm/lucide@latest/dist/umd/lucide.min.js" onload="if(window.lucide) lucide.createIcons();"></script>
 
     <script>
@@ -82,22 +83,6 @@
                     extend: {
                         fontFamily: {
                             sans: ['Cairo', 'system-ui', 'sans-serif'],
-                        },
-                        colors: {
-                            darkBg: '#090d16',
-                            cardBg: '#111827',
-                            ps4Blue: '#0070d1',
-                            ps5Gold: '#f59e0b',
-                        },
-                        animation: {
-                            'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                            'alarm-flash': 'alarmFlash 1s infinite',
-                        },
-                        keyframes: {
-                            alarmFlash: {
-                                '0%, 100%': { borderColor: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.25)' },
-                                '50%': { borderColor: '#facc15', backgroundColor: 'rgba(239, 68, 68, 0.05)' },
-                            }
                         }
                     }
                 }
@@ -163,7 +148,7 @@
     <!-- 1. واجهة العمال (الفترة الصباحية / المسائية) -->
     <!-- ========================================== -->
     <div id="staff-app" class="hidden flex-1 flex flex-col pb-20">
-        <!-- الشريط العلوي المبسّط والمنظّم (Header) -->
+        <!-- الشريط العلوي المبسّط والمنظّم -->
         <header class="sticky top-0 z-30 glass-panel border-b border-slate-800 px-4 py-3 shadow-lg">
             <div class="max-w-5xl mx-auto flex items-center justify-between gap-3">
                 <div class="flex items-center gap-2.5 sm:gap-3 min-w-0">
@@ -359,7 +344,6 @@
 
         <!-- شبكة أجهزة البلايستيشن وقسم البلياردو -->
         <main class="max-w-5xl w-full mx-auto px-4 py-4 flex-1 space-y-6">
-            <!-- قسم البلايستيشن (8 أجهزة) -->
             <section>
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
@@ -372,7 +356,6 @@
                 <div id="stations-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5"></div>
             </section>
 
-            <!-- قسم البلياردو (طرابيزتين) -->
             <section class="pt-4 border-t border-slate-800/80">
                 <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-2">
@@ -419,7 +402,6 @@
         </header>
 
         <main class="max-w-5xl w-full mx-auto px-4 py-5 flex-1 space-y-5">
-            <!-- التنقل بين الواجهة السريعة لليوم والتقويم الشهري -->
             <div class="grid grid-cols-2 gap-2.5 bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
                 <button id="mgr-tab-today" onclick="switchManagerView('today')" class="py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg">
                     <i data-lucide="zap" class="w-4 h-4"></i>
@@ -561,6 +543,14 @@
             <h3 class="text-xl font-black text-white">فاتورة الحساب - نور الإسلام</h3>
             <p id="inv-station-info" class="text-sm text-slate-400 font-semibold mb-4">جهاز 1 (PS4)</p>
 
+            <div id="inv-paid-banner" class="hidden mb-4 bg-emerald-500/20 border-2 border-emerald-400/70 rounded-2xl p-3 text-center space-y-1">
+                <div class="text-sm font-black text-emerald-300 flex items-center justify-center gap-1.5">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400 shrink-0"></i>
+                    <span>تنبيه: هذا الجهاز «دافع مقدم» بالفعل!</span>
+                </div>
+                <p id="inv-paid-sub" class="text-[11px] text-emerald-100/90 font-bold">يرجى مراجعة المشروبات أو وقت التأخير الزائد فقط إن وجد</p>
+            </div>
+
             <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-sm text-right mb-5">
                 <div class="flex justify-between">
                     <span class="text-slate-400">نظام الوقت:</span>
@@ -675,6 +665,21 @@
                 <button onclick="closeHandoverModal()" class="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
+            </div>
+
+            <!-- اختيار تاريخ تسليم الشفت (للشغل اللي بيخلص بعد الساعة 12) -->
+            <div class="mt-3 bg-slate-950/90 border border-blue-500/35 rounded-2xl p-3 shrink-0 space-y-2">
+                <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <label for="ho-date-input" class="text-xs font-black text-blue-300 flex items-center gap-1.5">
+                        <i data-lucide="calendar" class="w-4 h-4"></i>
+                        <span>تاريخ تسجيل الشفت عند المدير:</span>
+                    </label>
+                    <div class="flex items-center gap-1.5">
+                        <button type="button" id="ho-date-today-btn" onclick="setHandoverDateOffset(0)" class="px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-black transition active:scale-95">اليوم</button>
+                        <button type="button" id="ho-date-yesterday-btn" onclick="setHandoverDateOffset(-1)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 text-[11px] font-black transition active:scale-95">أمس (قبل 12)</button>
+                    </div>
+                </div>
+                <input type="date" id="ho-date-input" dir="ltr" onchange="updateHandoverDateButtonsUI()" class="w-full bg-slate-900 border border-slate-700 focus:border-blue-500 rounded-xl px-3 py-2 text-center text-sm font-black text-white tabular-nums focus:outline-none">
             </div>
 
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 my-3 shrink-0 text-center">
@@ -1085,14 +1090,13 @@
             messagingSenderId: "585994862560",
             appId: "1:585994862560:web:71614bd1b2a698d27a7585"
         };
-
         // =========================================================================
         // 🔔 قناة إشعارات الخلفية الافتراضية (تصل حتى لو كروم مقفول عبر تطبيق ntfy)
         // =========================================================================
         const DEFAULT_PUSH_TOPIC = 'nour-elislam-ps-alarm-8842';
 
         // =========================================================================
-        // 🔑 إعدادات حسابات الدخول (يمكنك تعديل اسم المستخدم وكلمة المرور من هنا)
+        // 🔑 إعدادات حسابات الدخول
         // =========================================================================
         const AUTH_ACCOUNTS = {
             evening: {
@@ -1120,58 +1124,72 @@
 
         // --- 1. تهيئة البيانات الأساسية للأجهزة الـ 8 + طرابيزتين البلياردو ---
         const DEFAULT_STATIONS = [
-            { id: 1, category: 'ps', name: 'جهاز 1', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 2, category: 'ps', name: 'جهاز 2', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 3, category: 'ps', name: 'جهاز 3', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 4, category: 'ps', name: 'جهاز 4', type: 'PS5', singleRate: 45, multiRate: 70, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 5, category: 'ps', name: 'جهاز 5', type: 'PS5', singleRate: 45, multiRate: 70, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 6, category: 'ps', name: 'جهاز 6', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 7, category: 'ps', name: 'جهاز 7', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 8, category: 'ps', name: 'جهاز 8', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 9, category: 'billiards', name: 'بلياردو 1', type: 'بلياردو', singleRate: 30, multiRate: 30, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
-            { id: 10, category: 'billiards', name: 'بلياردو 2', type: 'بلياردو', singleRate: 30, multiRate: 30, isMulti: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] }
+            { id: 1, category: 'ps', name: 'جهاز 1', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 2, category: 'ps', name: 'جهاز 2', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 3, category: 'ps', name: 'جهاز 3', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 4, category: 'ps', name: 'جهاز 4', type: 'PS5', singleRate: 45, multiRate: 70, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 5, category: 'ps', name: 'جهاز 5', type: 'PS5', singleRate: 45, multiRate: 70, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 6, category: 'ps', name: 'جهاز 6', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 7, category: 'ps', name: 'جهاز 7', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 8, category: 'ps', name: 'جهاز 8', type: 'PS4', singleRate: 30, multiRate: 40, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 9, category: 'billiards', name: 'بلياردو 1', type: 'بلياردو', singleRate: 30, multiRate: 30, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] },
+            { id: 10, category: 'billiards', name: 'بلياردو 2', type: 'بلياردو', singleRate: 30, multiRate: 30, isMulti: false, isPaid: false, status: 'free', mode: null, isMatch: false, startTime: null, segmentStartTime: null, accruedCost: 0, costAtEndTime: null, endTime: null, durationMinutes: 0, extras: 0, alarmTriggered: false, transferNote: null, modeSwitchNote: null, hadMultiSwitch: false, pushSequenceId: null, pushSequenceIds: [] }
         ];
 
-        const STORAGE_STATIONS_KEY = 'nour_elislam_stations_v5';
-        const STORAGE_HISTORY_KEY = 'nour_elislam_history_v5';
-        const STORAGE_EXPENSES_KEY = 'nour_elislam_expenses_v5';
-        const STORAGE_SURPLUS_KEY = 'nour_elislam_surplus_v5';
-        const STORAGE_HANDOVERS_KEY = 'nour_elislam_handovers_v5';
-        const STORAGE_SESSION_USER_KEY = 'nour_elislam_session_user_v5';
-        const STORAGE_PUSH_CONFIG_KEY = 'nour_elislam_push_config_v1';
+        const STORAGE_KEYS = {
+            USER: 'nour_ps_user_v3',
+            STATIONS: 'nour_ps_stations_v3',
+            HISTORY: 'nour_ps_history_v3',
+            EXPENSES: 'nour_ps_expenses_v3',
+            SURPLUS: 'nour_ps_surplus_v3',
+            HANDOVERS: 'nour_ps_handovers_v3',
+            PUSH_ENABLED: 'nour_ps_push_enabled_v3',
+            PUSH_REPEAT: 'nour_ps_push_repeat_v3',
+            PUSH_TOPIC: 'nour_ps_push_topic_v3'
+        };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nour-elislam-ps-lounge';
-        let cloudDb = null;
-        let cloudAuth = null;
-        let cloudUser = null;
-        let cloudFns = null;
-        let unsubscribeHandovers = null;
+        const ARABIC_MONTHS = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
 
-        let stations = [];
+        // --- متغيرات الحالة العامة ---
+        let currentUser = null;
+        let stations = JSON.parse(JSON.stringify(DEFAULT_STATIONS));
         let shiftHistory = [];
         let shiftExpenses = [];
         let shiftSurplus = [];
         let handedOverShifts = [];
-        let currentUser = null;
-        let pushConfig = { enabled: true, topic: DEFAULT_PUSH_TOPIC, repeatAlarm: true };
+
+        let pushEnabled = true;
+        let pushRepeat = true;
+        let pushTopic = DEFAULT_PUSH_TOPIC;
 
         let selectedStationId = null;
         let modalActiveTab = 'control';
         let preStartMulti = false;
+        let preStartPaid = false;
         let transferPanelOpen = false;
         let cancelConfirmActive = false;
-        let shiftModalFilter = 'all';
         let pendingSessionStart = null;
+        let shiftFilterStationId = 'all';
+
         let managerActiveView = 'today';
-        let managerCalendarDate = new Date();
-        let managerSelectedDateKey = '';
+        let managerCalYear = new Date().getFullYear();
+        let managerCalMonth = new Date().getMonth();
+        let managerSelectedDateKey = getLocalDateKey(new Date());
         let pendingDeleteShiftId = null;
-        let toastTimer = null;
+
         let alarmAudioCtx = null;
         let alarmIntervalId = null;
+        let toastTimeoutId = null;
+
+        // Firebase Cloud state
+        let fbDb = null;
+        let fbAuth = null;
+        let fbFns = null;
+        let fbUnsubscribe = null;
+        let cloudConnected = false;
 
         // =========================================================================
-        // 🛠️ دوال مساعدة أساسية (التاريخ، الوقت، التقريب، الأيقونات)
+        // 🛠️ دوال مساعدة (Formatting, Rounding, Dates, Toast, Icons)
         // =========================================================================
         function safeCreateIcons() {
             try {
@@ -1179,6 +1197,12 @@
                     window.lucide.createIcons();
                 }
             } catch (e) {}
+        }
+
+        function roundToFive(value) {
+            const num = Number(value) || 0;
+            if (num <= 0) return 0;
+            return Math.max(5, Math.round(num / 5) * 5);
         }
 
         function getLocalDateKey(dateObj) {
@@ -1189,48 +1213,55 @@
             return `${y}-${m}-${day}`;
         }
 
-        managerSelectedDateKey = getLocalDateKey(new Date());
-
-        function roundToFive(amount) {
-            const num = Number(amount) || 0;
-            if (num <= 0) return 0;
-            return Math.round(num / 5) * 5;
+        function formatArabicDateFromKey(dateKey) {
+            if (!dateKey || !/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return dateKey || '--';
+            const [y, m, d] = dateKey.split('-').map(Number);
+            const dt = new Date(y, m - 1, d);
+            try {
+                return dt.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            } catch (e) {
+                return dateKey;
+            }
         }
 
         function formatTime12Hour(ts) {
             if (!ts) return '--:--';
-            try {
-                return new Date(ts).toLocaleTimeString('ar-EG', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true
-                });
-            } catch (e) {
-                return '--:--';
-            }
+            const d = new Date(ts);
+            let h = d.getHours();
+            const m = String(d.getMinutes()).padStart(2, '0');
+            const ampm = h >= 12 ? 'م' : 'ص';
+            h = h % 12;
+            h = h ? h : 12;
+            return `${h}:${m} ${ampm}`;
         }
 
         function formatTimerHHMMSS(ms) {
-            const totalSec = Math.max(0, Math.floor(ms / 1000));
-            const h = Math.floor(totalSec / 3600);
-            const m = Math.floor((totalSec % 3600) / 60);
-            const s = totalSec % 60;
+            const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
             return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
         }
 
         function formatDurationArabic(ms) {
-            const totalMin = Math.max(1, Math.round(ms / 60000));
-            const h = Math.floor(totalMin / 60);
-            const m = totalMin % 60;
-            if (h > 0 && m > 0) return `${h} ساعة و ${m} دقيقة`;
-            if (h > 0) return h === 1 ? 'ساعة واحدة' : (h === 2 ? 'ساعتين' : `${h} ساعات`);
-            return `${m} دقيقة`;
+            const totalMinutes = Math.max(1, Math.round(ms / 60000));
+            const h = Math.floor(totalMinutes / 60);
+            const m = totalMinutes % 60;
+            if (h === 0) return `${m} دقيقة`;
+            if (m === 0) return h === 1 ? 'ساعة' : (h === 2 ? 'ساعتين' : `${h} ساعات`);
+            return `${h} س و ${m} د`;
         }
 
-        function getCurrentRate(station) {
-            if (!station) return 30;
-            if (station.category === 'billiards') return station.singleRate || 30;
-            return station.isMulti ? station.multiRate : station.singleRate;
+        function showToast(msg, duration = 3000) {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            if (!toast || !toastMsg) return;
+            toastMsg.innerText = msg;
+            toast.classList.remove('hidden');
+            if (toastTimeoutId) clearTimeout(toastTimeoutId);
+            toastTimeoutId = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, duration);
         }
 
         function getTotalShiftExpenses() {
@@ -1241,526 +1272,452 @@
             return shiftSurplus.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
         }
 
-        function showToast(msg, durationMs) {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toast-msg');
-            if (!toast || !msgEl) return;
-            msgEl.innerText = msg;
-            toast.classList.remove('hidden');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.add('hidden');
-            }, durationMs || 3500);
-        }
-
-        function openStaffMenu() {
-            const menu = document.getElementById('staff-side-menu');
-            if (!menu) return;
-            const labelEl = document.getElementById('menu-shift-label');
-            if (labelEl && currentUser) labelEl.innerText = currentUser.shiftLabel || '';
-            updateMenuBadges();
-            menu.classList.remove('hidden');
-            safeCreateIcons();
-        }
-
-        function closeStaffMenu() {
-            const menu = document.getElementById('staff-side-menu');
-            if (menu) menu.classList.add('hidden');
-        }
-
-        function updateMenuBadges() {
-            const sessionsRev = roundToFive(shiftHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
-            const totalSurplus = getTotalShiftSurplus();
-            const totalExp = getTotalShiftExpenses();
-            const totalGross = sessionsRev + totalSurplus;
-
-            const revBadge = document.getElementById('menu-revenue-badge');
-            const surBadge = document.getElementById('menu-surplus-badge');
-            const expBadge = document.getElementById('menu-expenses-badge');
-            const pushBadge = document.getElementById('menu-push-status');
-            const pushDot = document.getElementById('push-status-dot');
-
-            if (revBadge) revBadge.innerText = `${totalGross} ج`;
-            if (surBadge) surBadge.innerText = `+${totalSurplus} ج`;
-            if (expBadge) expBadge.innerText = `-${totalExp} ج`;
-            if (pushBadge) {
-                pushBadge.innerText = pushConfig.enabled ? 'مفعّل' : 'متوقف';
-                pushBadge.className = pushConfig.enabled
-                    ? 'text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300'
-                    : 'text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
-            }
-            if (pushDot) {
-                pushDot.className = pushConfig.enabled
-                    ? 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-slate-950'
-                    : 'absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-slate-500 border-2 border-slate-950';
-            }
+        function getCurrentRate(station) {
+            if (station.category === 'billiards') return station.singleRate || 30;
+            return station.isMulti ? (station.multiRate || 40) : (station.singleRate || 30);
         }
 
         // =========================================================================
-        // 💾 التخزين المحلي (LocalStorage)
+        // 💰 حساب التكلفة الدقيقة (أوبن + وقت محدد + ماتش واحد + وقت التأخير + تحويل المالتي)
         // =========================================================================
-        function cloneDefaultStations() {
-            return DEFAULT_STATIONS.map(s => ({ ...s, pushSequenceIds: [] }));
+        function calculateRawSegmentCost(ms, ratePerHour) {
+            if (ms <= 0) return 0;
+            return (ms / 3600000) * ratePerHour;
+        }
+
+        function calculateOvertimeCost(station, nowTs) {
+            if (station.mode !== 'fixed' || !station.endTime) return 0;
+            const now = nowTs || Date.now();
+            if (now <= station.endTime) return 0;
+            const segStart = Math.max(station.segmentStartTime || station.startTime || station.endTime, station.endTime);
+            const overtimeMs = Math.max(0, now - segStart);
+            const rate = getCurrentRate(station);
+            const prevOvertimeAccrued = (station.costAtEndTime !== null && station.costAtEndTime !== undefined)
+                ? Math.max(0, (Number(station.accruedCost) || 0) - Number(station.costAtEndTime))
+                : 0;
+            return prevOvertimeAccrued + calculateRawSegmentCost(overtimeMs, rate);
+        }
+
+        function calculatePlayCost(station, nowTs) {
+            if (station.status !== 'active' || !station.startTime) return 0;
+            const now = nowTs || Date.now();
+            const rate = getCurrentRate(station);
+
+            // حالة ماتش واحد (15 دقيقة بـ 10 جنيه ثابتة + أي تأخير بعد الـ 15 دقيقة بسعر الساعة)
+            if (station.isMatch && station.mode === 'fixed' && station.endTime) {
+                const baseMatchCost = 10;
+                if (now <= station.endTime) {
+                    return baseMatchCost;
+                }
+                const overtimeCost = calculateOvertimeCost(station, now);
+                return roundToFive(baseMatchCost + overtimeCost);
+            }
+
+            // حالة الوقت المحدد العادي (مع دعم التحويل لمالتي ووقت التأخير الزائد)
+            if (station.mode === 'fixed' && station.endTime) {
+                const segStart = station.segmentStartTime || station.startTime;
+                if (now <= station.endTime) {
+                    // التكلفة المتوقعة حتى نهاية الوقت المحدد
+                    const remainingUntilEnd = Math.max(0, station.endTime - segStart);
+                    const totalRaw = (Number(station.accruedCost) || 0) + calculateRawSegmentCost(remainingUntilEnd, rate);
+                    return roundToFive(totalRaw);
+                } else {
+                    // انتهى الوقت المحدد وبدأ وقت التأخير
+                    const elapsedSinceSeg = Math.max(0, now - segStart);
+                    const totalRaw = (Number(station.accruedCost) || 0) + calculateRawSegmentCost(elapsedSinceSeg, rate);
+                    return roundToFive(totalRaw);
+                }
+            }
+
+            // حالة الوقت المفتوح (أوبن)
+            const segStart = station.segmentStartTime || station.startTime;
+            const elapsedMs = Math.max(0, now - segStart);
+            const totalRaw = (Number(station.accruedCost) || 0) + calculateRawSegmentCost(elapsedMs, rate);
+            return roundToFive(totalRaw);
+        }
+
+        // =========================================================================
+        // 💾 الحفظ والتحميل المحلي (LocalStorage)
+        // =========================================================================
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEYS.STATIONS, JSON.stringify(stations));
+                localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(shiftHistory));
+                localStorage.setItem(STORAGE_KEYS.EXPENSES, JSON.stringify(shiftExpenses));
+                localStorage.setItem(STORAGE_KEYS.SURPLUS, JSON.stringify(shiftSurplus));
+                localStorage.setItem(STORAGE_KEYS.HANDOVERS, JSON.stringify(handedOverShifts));
+                localStorage.setItem(STORAGE_KEYS.PUSH_ENABLED, JSON.stringify(pushEnabled));
+                localStorage.setItem(STORAGE_KEYS.PUSH_REPEAT, JSON.stringify(pushRepeat));
+                localStorage.setItem(STORAGE_KEYS.PUSH_TOPIC, pushTopic);
+            } catch (e) {}
         }
 
         function loadState() {
             try {
-                const rawStations = localStorage.getItem(STORAGE_STATIONS_KEY);
-                if (rawStations) {
-                    const parsed = JSON.parse(rawStations);
-                    stations = DEFAULT_STATIONS.map(def => {
-                        const found = Array.isArray(parsed) ? parsed.find(x => x.id === def.id) : null;
-                        return found ? { ...def, ...found, pushSequenceIds: Array.isArray(found.pushSequenceIds) ? found.pushSequenceIds : [] } : { ...def, pushSequenceIds: [] };
-                    });
-                } else {
-                    stations = cloneDefaultStations();
-                }
-            } catch (e) {
-                stations = cloneDefaultStations();
-            }
+                const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
+                if (savedUser) currentUser = JSON.parse(savedUser);
 
-            try { shiftHistory = JSON.parse(localStorage.getItem(STORAGE_HISTORY_KEY) || '[]') || []; } catch (e) { shiftHistory = []; }
-            try { shiftExpenses = JSON.parse(localStorage.getItem(STORAGE_EXPENSES_KEY) || '[]') || []; } catch (e) { shiftExpenses = []; }
-            try { shiftSurplus = JSON.parse(localStorage.getItem(STORAGE_SURPLUS_KEY) || '[]') || []; } catch (e) { shiftSurplus = []; }
-            try { handedOverShifts = JSON.parse(localStorage.getItem(STORAGE_HANDOVERS_KEY) || '[]') || []; } catch (e) { handedOverShifts = []; }
-            try {
-                const savedPush = JSON.parse(localStorage.getItem(STORAGE_PUSH_CONFIG_KEY) || 'null');
-                if (savedPush && typeof savedPush === 'object') {
-                    pushConfig = {
-                        enabled: savedPush.enabled !== false,
-                        topic: (savedPush.topic || DEFAULT_PUSH_TOPIC).trim() || DEFAULT_PUSH_TOPIC,
-                        repeatAlarm: savedPush.repeatAlarm !== false
-                    };
+                const savedStations = localStorage.getItem(STORAGE_KEYS.STATIONS);
+                if (savedStations) {
+                    const parsed = JSON.parse(savedStations);
+                    if (Array.isArray(parsed)) {
+                        stations = DEFAULT_STATIONS.map(def => {
+                            const found = parsed.find(p => p.id === def.id);
+                            return found ? { ...def, ...found } : { ...def };
+                        });
+                    }
                 }
-            } catch (e) {}
-        }
 
-        function saveState() {
-            try {
-                localStorage.setItem(STORAGE_STATIONS_KEY, JSON.stringify(stations));
-                localStorage.setItem(STORAGE_HISTORY_KEY, JSON.stringify(shiftHistory));
-                localStorage.setItem(STORAGE_EXPENSES_KEY, JSON.stringify(shiftExpenses));
-                localStorage.setItem(STORAGE_SURPLUS_KEY, JSON.stringify(shiftSurplus));
-                localStorage.setItem(STORAGE_HANDOVERS_KEY, JSON.stringify(handedOverShifts));
-                localStorage.setItem(STORAGE_PUSH_CONFIG_KEY, JSON.stringify(pushConfig));
+                const savedHistory = localStorage.getItem(STORAGE_KEYS.HISTORY);
+                if (savedHistory) shiftHistory = JSON.parse(savedHistory) || [];
+
+                const savedExp = localStorage.getItem(STORAGE_KEYS.EXPENSES);
+                if (savedExp) shiftExpenses = JSON.parse(savedExp) || [];
+
+                const savedSur = localStorage.getItem(STORAGE_KEYS.SURPLUS);
+                if (savedSur) shiftSurplus = JSON.parse(savedSur) || [];
+
+                const savedHo = localStorage.getItem(STORAGE_KEYS.HANDOVERS);
+                if (savedHo) handedOverShifts = JSON.parse(savedHo) || [];
+
+                const savedPushEn = localStorage.getItem(STORAGE_KEYS.PUSH_ENABLED);
+                if (savedPushEn !== null) pushEnabled = JSON.parse(savedPushEn);
+
+                const savedPushRep = localStorage.getItem(STORAGE_KEYS.PUSH_REPEAT);
+                if (savedPushRep !== null) pushRepeat = JSON.parse(savedPushRep);
+
+                const savedTopic = localStorage.getItem(STORAGE_KEYS.PUSH_TOPIC);
+                if (savedTopic && savedTopic.trim()) pushTopic = savedTopic.trim();
             } catch (e) {}
         }
 
         // =========================================================================
-        // ☁️ الربط السحابي (Firebase Cloud Firestore) — محمي ضد مسح الشفتات
+        // ☁️ الربط السحابي مع Google Firebase Firestore
         // =========================================================================
-        function updateCloudBadge(statusText, stateType) {
+        function updateCloudBadgeUI(status, text) {
             const badge = document.getElementById('cloud-sync-badge');
             if (!badge) return;
-            if (stateType === 'online') {
+            if (status === 'connected') {
                 badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/35 flex items-center gap-1';
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>${statusText}`;
-            } else if (stateType === 'local') {
-                badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1';
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>${statusText}`;
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>${text || 'متصل سحابياً'}`;
+            } else if (status === 'offline') {
+                badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/35 flex items-center gap-1';
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>${text || 'وضع محلي (بدون Firebase)'}`;
             } else {
-                badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 flex items-center gap-1';
-                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-slate-500"></span>${statusText}`;
+                badge.className = 'text-[10px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/35 flex items-center gap-1';
+                badge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>${text || 'خطأ في الاتصال السحابي'}`;
             }
         }
 
-        async function initCloudConnection() {
-            let activeConfig = null;
-            if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-                try { activeConfig = JSON.parse(__firebase_config); } catch (e) {}
-            } else if (MANUAL_FIREBASE_CONFIG && MANUAL_FIREBASE_CONFIG.apiKey && MANUAL_FIREBASE_CONFIG.projectId) {
-                activeConfig = MANUAL_FIREBASE_CONFIG;
-            }
-
-            if (!activeConfig) {
-                updateCloudBadge('وضع محلي (أوفلاين)', 'local');
+        async function initFirebaseCloud() {
+            if (!MANUAL_FIREBASE_CONFIG || !MANUAL_FIREBASE_CONFIG.apiKey || !MANUAL_FIREBASE_CONFIG.projectId) {
+                cloudConnected = false;
+                updateCloudBadgeUI('offline', 'وضع محلي (أضف مفاتيح Firebase)');
                 return;
             }
 
             try {
-                const [appMod, authMod, fsMod] = await Promise.all([
-                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
-                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'),
-                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js')
-                ]);
+                const appMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js');
+                const authMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js');
+                const fsMod = await import('https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js');
 
-                const fbApp = appMod.initializeApp(activeConfig);
-                cloudAuth = authMod.getAuth(fbApp);
-                cloudDb = fsMod.getFirestore(fbApp);
-                cloudFns = {
-                    collection: fsMod.collection,
-                    doc: fsMod.doc,
-                    setDoc: fsMod.setDoc,
-                    deleteDoc: fsMod.deleteDoc,
-                    onSnapshot: fsMod.onSnapshot
-                };
+                const app = appMod.getApps().length ? appMod.getApps()[0] : appMod.initializeApp(MANUAL_FIREBASE_CONFIG);
+                fbAuth = authMod.getAuth(app);
+                fbDb = fsMod.getFirestore(app);
+                fbFns = fsMod;
 
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await authMod.signInWithCustomToken(cloudAuth, __initial_auth_token);
-                } else {
-                    await authMod.signInAnonymously(cloudAuth);
-                }
-                cloudUser = cloudAuth.currentUser;
-                updateCloudBadge('متصل سحابياً', 'online');
+                await authMod.signInAnonymously(fbAuth);
+                cloudConnected = true;
+                updateCloudBadgeUI('connected', 'متصل سحابياً');
+
+                // إعادة رفع أي شفتات محفوظة محلياً ولم تُرفع للسحابة بعد
+                await syncPendingLocalShiftsToCloud();
+
+                // الاشتراك اللحظي في شفتات المدير
                 subscribeToManagerShifts();
-                retryUnsyncedShifts();
             } catch (err) {
-                console.warn('Cloud init fallback to local:', err);
-                const code = err?.code || '';
-                if (code.includes('unauthorized-domain')) {
-                    updateCloudBadge('دومين غير مصرح به في Firebase', 'local');
-                } else {
-                    updateCloudBadge('وضع محلي (تعذر السحابة)', 'local');
-                }
+                console.error('Firebase init error:', err);
+                cloudConnected = false;
+                updateCloudBadgeUI('error', 'تعذر الاتصال السحابي');
             }
         }
 
-        async function retryUnsyncedShifts() {
-            if (!cloudDb || !cloudFns || !cloudUser) return;
-            const pending = handedOverShifts.filter(s => !s.syncedToCloud);
-            if (pending.length === 0) return;
-
-            for (const sh of pending) {
-                const res = await sendShiftToManagerCloud(sh, true);
-                if (res.ok) {
-                    const idx = handedOverShifts.findIndex(x => String(x.id) === String(sh.id));
-                    if (idx !== -1) {
-                        handedOverShifts[idx].syncedToCloud = true;
-                        saveState();
-                    }
-                }
-            }
+        function getShiftsCollectionRef() {
+            if (!fbDb || !fbFns) return null;
+            return fbFns.collection(fbDb, 'artifacts', 'nour-elislam-ps-lounge', 'public', 'data', 'shift_handovers');
         }
 
-        function subscribeToManagerShifts() {
-            if (!cloudDb || !cloudFns || !cloudUser) return;
-            if (unsubscribeHandovers) {
-                try { unsubscribeHandovers(); } catch (e) {}
-            }
-            const colRef = cloudFns.collection(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers');
-            unsubscribeHandovers = cloudFns.onSnapshot(colRef, (snapshot) => {
-                // تجاهل القراءة الفارغة من الكاش المؤقت حتى لا تُمسح البيانات المحلية
-                if (snapshot.metadata && snapshot.metadata.fromCache && snapshot.empty && handedOverShifts.length > 0) {
-                    return;
-                }
-
-                const cloudList = [];
-                snapshot.forEach(docSnap => {
-                    const data = docSnap.data();
-                    if (data) {
-                        const isConfirmedOnServer = !(docSnap.metadata && docSnap.metadata.hasPendingWrites);
-                        cloudList.push({
-                            ...data,
-                            id: data.id || docSnap.id,
-                            syncedToCloud: isConfirmedOnServer
-                        });
-                    }
-                });
-
-                const unsyncedLocal = handedOverShifts.filter(
-                    s => !s.syncedToCloud && !cloudList.some(c => String(c.id) === String(s.id))
-                );
-                handedOverShifts = [...unsyncedLocal, ...cloudList].sort(
-                    (a, b) => (Number(b.handedOverAt) || 0) - (Number(a.handedOverAt) || 0)
-                );
-                saveState();
-
-                if (currentUser && currentUser.role === 'manager') {
-                    if (managerActiveView === 'today') renderManagerTodayView();
-                    else renderManagerCalendarView();
-                    safeCreateIcons();
-                }
-            }, (err) => {
-                console.warn('Firestore snapshot error:', err);
-                if (err?.code === 'permission-denied') {
-                    updateCloudBadge('خطأ صلاحيات Firebase Rules', 'local');
-                    showToast('تنبيه: قواعد Firestore ترفض القراءة! راجع تبويب Rules في Firebase', 5000);
-                }
-            });
-        }
-
-        async function sendShiftToManagerCloud(payload, silent) {
-            if (!cloudDb || !cloudFns || !cloudUser) {
+        async function sendShiftToManagerCloud(payload, silent = false) {
+            if (!cloudConnected || !fbDb || !fbFns) {
                 return { ok: false, reason: 'offline' };
             }
             try {
-                // تنظيف الكائن من أي قيم undefined قبل الرفع لـ Firestore
+                const colRef = getShiftsCollectionRef();
+                const docRef = fbFns.doc(colRef, String(payload.id));
                 const cleanPayload = JSON.parse(JSON.stringify({ ...payload, syncedToCloud: true }));
-                const docRef = cloudFns.doc(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers', String(payload.id));
-                await cloudFns.setDoc(docRef, cleanPayload);
+                await fbFns.setDoc(docRef, cleanPayload);
                 return { ok: true };
-            } catch (e) {
-                console.warn('Upload shift error:', e);
-                const code = e?.code || '';
-                if (!silent && code === 'permission-denied') {
-                    showToast('فشل الرفع للسحابة: قواعد Firebase Rules ترفض الكتابة!', 5500);
+            } catch (err) {
+                console.error('Cloud save error:', err);
+                const code = err?.code || '';
+                if (code === 'permission-denied') {
+                    if (!silent) showToast('قواعد Firebase Rules ترفض الكتابة! راجع تبويب Rules في Firestore.', 5500);
+                    return { ok: false, reason: 'permission-denied' };
                 }
                 return { ok: false, reason: code || 'error' };
             }
         }
 
-        async function deleteShiftFromManagerCloud(shiftId) {
-            if (!cloudDb || !cloudFns || !cloudUser) return false;
+        async function syncPendingLocalShiftsToCloud() {
+            if (!cloudConnected) return;
+            let changed = false;
+            for (const sh of handedOverShifts) {
+                if (!sh.syncedToCloud) {
+                    const res = await sendShiftToManagerCloud(sh, true);
+                    if (res.ok) {
+                        sh.syncedToCloud = true;
+                        changed = true;
+                    }
+                }
+            }
+            if (changed) {
+                saveState();
+                if (currentUser?.role === 'manager') renderManagerDashboard();
+            }
+        }
+
+        function subscribeToManagerShifts() {
+            if (!cloudConnected || !fbDb || !fbFns) return;
+            if (fbUnsubscribe) {
+                try { fbUnsubscribe(); } catch (e) {}
+            }
+            const colRef = getShiftsCollectionRef();
+            fbUnsubscribe = fbFns.onSnapshot(colRef, (snapshot) => {
+                // تجاهل القراءة المؤقتة من الكاش لو فيها كتابات معلقة
+                if (snapshot.metadata && snapshot.metadata.hasPendingWrites) return;
+
+                const cloudShifts = [];
+                snapshot.forEach(docSnap => {
+                    const data = docSnap.data();
+                    if (data && data.id) {
+                        cloudShifts.push({ ...data, syncedToCloud: true });
+                    }
+                });
+
+                // الاحتفاظ بأي شفت محلي لم يُرفع للسحابة بعد حتى لا يختفي
+                const unsyncedLocal = handedOverShifts.filter(localSh =>
+                    !localSh.syncedToCloud && !cloudShifts.some(c => String(c.id) === String(localSh.id))
+                );
+
+                handedOverShifts = [...unsyncedLocal, ...cloudShifts].sort((a, b) => (b.handedOverAt || 0) - (a.handedOverAt || 0));
+                saveState();
+                if (currentUser?.role === 'manager') {
+                    renderManagerDashboard();
+                }
+            }, (err) => {
+                console.error('onSnapshot error:', err);
+                if (err?.code === 'permission-denied') {
+                    updateCloudBadgeUI('error', 'خطأ صلاحيات Rules');
+                }
+            });
+        }
+
+        async function deleteShiftFromCloud(shiftId) {
+            if (!cloudConnected || !fbDb || !fbFns) return { ok: false, reason: 'offline' };
             try {
-                const docRef = cloudFns.doc(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers', String(shiftId));
-                await cloudFns.deleteDoc(docRef);
-                return true;
-            } catch (e) {
-                console.warn('Delete shift cloud error:', e);
-                return false;
+                const colRef = getShiftsCollectionRef();
+                const docRef = fbFns.doc(colRef, String(shiftId));
+                await fbFns.deleteDoc(docRef);
+                return { ok: true };
+            } catch (err) {
+                console.error('Delete shift cloud error:', err);
+                return { ok: false, reason: err?.code || 'error' };
             }
         }
 
         // =========================================================================
-        // 🔐 نظام تسجيل الدخول والصلاحيات
+        // 🔔 إشعارات الخلفية (ntfy) + صوت الإنذار الداخلي
         // =========================================================================
-        function handleLogin(event) {
-            if (event) event.preventDefault();
-            const userInput = (document.getElementById('login-username')?.value || '').trim();
-            const passInput = (document.getElementById('login-password')?.value || '').trim();
-            const errorBox = document.getElementById('login-error');
-
-            const matchedAccount = Object.values(AUTH_ACCOUNTS).find(
-                acc => acc.username.trim() === userInput && acc.password.trim() === passInput
-            );
-
-            if (!matchedAccount) {
-                if (errorBox) errorBox.classList.remove('hidden');
-                return;
+        function updatePushUIStatus() {
+            const dot = document.getElementById('push-status-dot');
+            const menuStatus = document.getElementById('menu-push-status');
+            if (dot) {
+                dot.className = `absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${pushEnabled ? 'bg-emerald-400' : 'bg-slate-500'}`;
+            }
+            if (menuStatus) {
+                menuStatus.innerText = pushEnabled ? 'مفعّل' : 'متوقف';
+                menuStatus.className = pushEnabled
+                    ? 'text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300'
+                    : 'text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
             }
 
-            if (errorBox) errorBox.classList.add('hidden');
-            currentUser = { ...matchedAccount };
-            try {
-                localStorage.setItem(STORAGE_SESSION_USER_KEY, JSON.stringify(currentUser));
-            } catch (e) {}
-
-            document.getElementById('login-username').value = '';
-            document.getElementById('login-password').value = '';
-
-            applyAuthenticatedView();
-            showToast(`أهلاً بك في ${currentUser.shiftLabel}`);
-        }
-
-        function logoutUser() {
-            currentUser = null;
-            stopAlarmSound();
-            closeStaffMenu();
-            closeStationModal();
-            try { localStorage.removeItem(STORAGE_SESSION_USER_KEY); } catch (e) {}
-            applyAuthenticatedView();
-        }
-
-        function applyAuthenticatedView() {
-            const loginScreen = document.getElementById('login-screen');
-            const staffApp = document.getElementById('staff-app');
-            const managerApp = document.getElementById('manager-app');
-
-            if (!currentUser) {
-                loginScreen.classList.remove('hidden');
-                staffApp.classList.add('hidden');
-                managerApp.classList.add('hidden');
-            } else if (currentUser.role === 'manager') {
-                loginScreen.classList.add('hidden');
-                staffApp.classList.add('hidden');
-                managerApp.classList.remove('hidden');
-                switchManagerView(managerActiveView || 'today');
-            } else {
-                loginScreen.classList.add('hidden');
-                managerApp.classList.add('hidden');
-                staffApp.classList.remove('hidden');
-                const badge = document.getElementById('active-shift-badge');
-                if (badge) badge.innerText = currentUser.shiftLabel || 'الفترة الصباحية';
-                renderAllGrids();
+            const toggleBtn = document.getElementById('push-toggle-btn');
+            if (toggleBtn) {
+                toggleBtn.innerText = pushEnabled ? 'مفعّل ✓' : 'متوقف';
+                toggleBtn.className = pushEnabled
+                    ? 'px-3.5 py-2 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition active:scale-95'
+                    : 'px-3.5 py-2 rounded-xl text-xs font-black bg-slate-800 text-slate-400 border border-slate-700 transition active:scale-95';
             }
-            updateLiveClockAndDate();
-            safeCreateIcons();
+
+            const repeatBtn = document.getElementById('push-repeat-toggle-btn');
+            if (repeatBtn) {
+                repeatBtn.innerText = pushRepeat ? 'مفعّل ✓' : 'رنة واحدة';
+                repeatBtn.className = pushRepeat
+                    ? 'px-3.5 py-2 rounded-xl text-xs font-black bg-red-500/25 text-red-300 border border-red-500/40 transition active:scale-95'
+                    : 'px-3.5 py-2 rounded-xl text-xs font-black bg-slate-800 text-slate-400 border border-slate-700 transition active:scale-95';
+            }
+
+            const topicInput = document.getElementById('push-topic-input');
+            if (topicInput) topicInput.value = pushTopic;
         }
 
-        // =========================================================================
-        // 🔔 نظام إشعارات الخلفية المجدولة (ntfy) + صوت الإنذار الداخلي
-        // =========================================================================
         function openPushSettingsModal() {
-            const modal = document.getElementById('push-settings-modal');
-            if (!modal) return;
-            const input = document.getElementById('push-topic-input');
-            if (input) input.value = pushConfig.topic || DEFAULT_PUSH_TOPIC;
-            refreshPushSettingsUI();
-            modal.classList.remove('hidden');
+            updatePushUIStatus();
+            document.getElementById('push-settings-modal').classList.remove('hidden');
             safeCreateIcons();
         }
 
         function closePushSettingsModal() {
-            const modal = document.getElementById('push-settings-modal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function refreshPushSettingsUI() {
-            const toggleBtn = document.getElementById('push-toggle-btn');
-            if (toggleBtn) {
-                toggleBtn.innerText = pushConfig.enabled ? 'مفعّل ✓' : 'متوقف';
-                toggleBtn.className = pushConfig.enabled
-                    ? 'px-3.5 py-2 rounded-xl text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 transition active:scale-95'
-                    : 'px-3.5 py-2 rounded-xl text-xs font-black bg-slate-800 text-slate-400 border border-slate-700 transition active:scale-95';
-            }
-            const repeatBtn = document.getElementById('push-repeat-toggle-btn');
-            if (repeatBtn) {
-                repeatBtn.innerText = pushConfig.repeatAlarm ? 'مفعّل ✓' : 'رنة واحدة';
-                repeatBtn.className = pushConfig.repeatAlarm
-                    ? 'px-3.5 py-2 rounded-xl text-xs font-black bg-red-500/20 text-red-300 border border-red-500/40 transition active:scale-95'
-                    : 'px-3.5 py-2 rounded-xl text-xs font-black bg-slate-800 text-slate-400 border border-slate-700 transition active:scale-95';
-            }
-            updateMenuBadges();
+            document.getElementById('push-settings-modal').classList.add('hidden');
         }
 
         function togglePushEnabled() {
-            pushConfig.enabled = !pushConfig.enabled;
+            pushEnabled = !pushEnabled;
             saveState();
-            refreshPushSettingsUI();
-            showToast(pushConfig.enabled ? 'تم تفعيل إشعارات الخلفية' : 'تم إيقاف إشعارات الخلفية');
+            updatePushUIStatus();
+            showToast(pushEnabled ? 'تم تفعيل إشعارات الخلفية' : 'تم إيقاف إشعارات الخلفية');
         }
 
         function togglePushRepeat() {
-            pushConfig.repeatAlarm = !pushConfig.repeatAlarm;
+            pushRepeat = !pushRepeat;
             saveState();
-            refreshPushSettingsUI();
-            showToast(pushConfig.repeatAlarm ? 'تم تفعيل الإنذار المتكرر (3 رنات)' : 'تم التبديل إلى رنة واحدة');
+            updatePushUIStatus();
+            showToast(pushRepeat ? 'تم تفعيل الإنذار المتكرر (3 رنات)' : 'تم التبديل إلى رنة واحدة');
+        }
+
+        function copyPushTopic() {
+            const val = (document.getElementById('push-topic-input')?.value || pushTopic).trim();
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(val).then(() => showToast('تم نسخ اسم القناة بنجاح!'));
+            } else {
+                showToast(`اسم القناة: ${val}`);
+            }
         }
 
         function savePushTopicFromInput() {
-            const input = document.getElementById('push-topic-input');
-            const raw = (input?.value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
-            if (!raw || raw.length < 4) {
-                showToast('يرجى إدخال اسم قناة بالإنجليزية لا يقل عن 4 أحرف');
+            const raw = (document.getElementById('push-topic-input')?.value || '').trim().replace(/[^a-zA-Z0-9_-]/g, '');
+            if (!raw) {
+                showToast('يرجى كتابة اسم قناة إنجليزي صحيح');
                 return;
             }
-            pushConfig.topic = raw;
-            if (input) input.value = raw;
+            pushTopic = raw;
             saveState();
-            showToast('تم حفظ اسم القناة بنجاح');
+            updatePushUIStatus();
+            showToast('تم حفظ اسم قناة الإشعارات بنجاح!');
         }
 
-        async function copyPushTopic() {
-            const topic = pushConfig.topic || DEFAULT_PUSH_TOPIC;
+        async function sendNtfyNotification({ title, message, delaySeconds = 0, sequenceId = null }) {
+            if (!pushEnabled || !pushTopic) return;
             try {
-                await navigator.clipboard.writeText(topic);
-                showToast('تم نسخ اسم القناة — الصقه في تطبيق ntfy');
-            } catch (e) {
-                showToast(`اسم القناة: ${topic}`);
-            }
+                const headers = {
+                    'Title': title,
+                    'Priority': '5',
+                    'Tags': 'rotating_light,alarm_clock,video_game'
+                };
+                if (delaySeconds > 0) {
+                    headers['Delay'] = `${Math.max(10, Math.round(delaySeconds))}s`;
+                }
+                if (sequenceId) {
+                    headers['Sequence-ID'] = sequenceId;
+                }
+                await fetch(`https://ntfy.sh/${encodeURIComponent(pushTopic)}`, {
+                    method: 'POST',
+                    headers,
+                    body: message
+                });
+            } catch (e) {}
+        }
+
+        async function cancelNtfyBySequenceId(seqId) {
+            if (!pushTopic || !seqId) return;
+            try {
+                await fetch(`https://ntfy.sh/${encodeURIComponent(pushTopic)}/${encodeURIComponent(seqId)}`, {
+                    method: 'DELETE'
+                });
+            } catch (e) {}
         }
 
         async function scheduleStationPushNotification(station) {
-            if (!pushConfig.enabled || !pushConfig.topic || !station || !station.endTime) return false;
-            const remainingSec = Math.floor((station.endTime - Date.now()) / 1000);
-            if (remainingSec < 10) return false;
+            await cancelStationPushNotification(station);
+            if (!pushEnabled || station.mode !== 'fixed' || !station.endTime) return;
 
-            if (station.pushSequenceId || (Array.isArray(station.pushSequenceIds) && station.pushSequenceIds.length > 0)) {
-                await cancelStationPushNotification(station);
+            const remainingSec = Math.round((station.endTime - Date.now()) / 1000);
+            if (remainingSec < 10) return;
+
+            const baseId = `nour-st-${station.id}-${Date.now()}`;
+            const ids = [];
+            const repeats = pushRepeat ? 3 : 1;
+
+            for (let i = 0; i < repeats; i++) {
+                const seqId = `${baseId}-${i}`;
+                ids.push(seqId);
+                const delaySec = remainingSec + (i * 12);
+                const msg = i === 0
+                    ? `انتهى وقت ${station.name} (${station.isMatch ? 'ماتش واحد' : station.type}) الآن! يرجى المراجعة.`
+                    : `تذكير عاجل (${i + 1}): انتهى وقت ${station.name} وبدأ حساب وقت التأخير!`;
+                sendNtfyNotification({
+                    title: `انتهى وقت ${station.name} - نور الإسلام`,
+                    message: msg,
+                    delaySeconds: delaySec,
+                    sequenceId: seqId
+                });
             }
 
-            const playLabel = station.isMatch
-                ? 'ماتش واحد (15 دقيقة)'
-                : (station.category === 'billiards' ? 'بلياردو' : (station.isMulti ? 'مالتي' : 'عادي'));
-
-            const baseSeq = `ps-${station.id}-${Date.now()}`;
-            const offsets = pushConfig.repeatAlarm ? [0, 12, 24] : [0];
-            const createdIds = [];
-
-            try {
-                for (let idx = 0; idx < offsets.length; idx++) {
-                    const seqId = `${baseSeq}-${idx}`;
-                    const triggerEpoch = Math.floor(station.endTime / 1000) + offsets[idx];
-                    const titleText = idx === 0
-                        ? `انتهى وقت ${station.name}!`
-                        : `تنبيه عاجل (${idx + 1}/3): ${station.name} خلص!`;
-                    const bodyText = `بلايستيشن نور الإسلام — ${station.name} (${station.type} • ${playLabel}) انتهى وقته الآن!`;
-
-                    const res = await fetch(`https://ntfy.sh/${encodeURIComponent(pushConfig.topic)}`, {
-                        method: 'POST',
-                        headers: {
-                            'Title': titleText,
-                            'Priority': '5',
-                            'Tags': 'rotating_light,alarm_clock',
-                            'At': String(triggerEpoch),
-                            'Sequence-ID': seqId
-                        },
-                        body: bodyText
-                    });
-                    if (res.ok) createdIds.push(seqId);
-                }
-
-                if (createdIds.length > 0) {
-                    station.pushSequenceId = createdIds[0];
-                    station.pushSequenceIds = createdIds;
-                    saveState();
-                    return true;
-                }
-            } catch (e) {
-                console.warn('ntfy schedule error:', e);
-            }
-            return false;
+            station.pushSequenceId = baseId;
+            station.pushSequenceIds = ids;
+            saveState();
         }
 
         async function cancelStationPushNotification(station) {
-            if (!pushConfig.topic || !station) return;
-            const idsToCancel = new Set();
-            if (station.pushSequenceId) idsToCancel.add(station.pushSequenceId);
-            if (Array.isArray(station.pushSequenceIds)) {
-                station.pushSequenceIds.forEach(id => { if (id) idsToCancel.add(id); });
+            if (!station) return;
+            const ids = Array.isArray(station.pushSequenceIds) ? [...station.pushSequenceIds] : [];
+            if (station.pushSequenceId && !ids.includes(station.pushSequenceId)) {
+                ids.push(station.pushSequenceId);
             }
             station.pushSequenceId = null;
             station.pushSequenceIds = [];
-            saveState();
-
-            for (const seqId of idsToCancel) {
-                try {
-                    await fetch(`https://ntfy.sh/${encodeURIComponent(pushConfig.topic)}/${encodeURIComponent(seqId)}`, {
-                        method: 'DELETE'
-                    });
-                } catch (e) {}
+            for (const id of ids) {
+                await cancelNtfyBySequenceId(id);
             }
         }
 
         async function sendTestPushNow() {
-            if (!pushConfig.topic) return;
-            try {
-                const res = await fetch(`https://ntfy.sh/${encodeURIComponent(pushConfig.topic)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Title': 'تجربة إنذار بلايستيشن نور الإسلام',
-                        'Priority': '5',
-                        'Tags': 'rotating_light,white_check_mark'
-                    },
-                    body: 'تم الربط بنجاح! هذا هو شكل وصوت الإنذار عند انتهاء وقت أي جهاز.'
-                });
-                showToast(res.ok ? 'تم إرسال الإشعار التجريبي الآن!' : 'تعذر الإرسال، تأكد من الإنترنت');
-            } catch (e) {
-                showToast('تعذر الاتصال بسيرفر الإشعارات');
+            if (!pushEnabled) {
+                showToast('فعّل إشعارات الخلفية أولاً');
+                return;
             }
+            await sendNtfyNotification({
+                title: 'تجربة إنذار - نور الإسلام',
+                message: 'تم ربط تطبيق ntfy بنجاح! هذا صوت تنبيه انتهاء الوقت.',
+                delaySeconds: 0
+            });
+            showToast('تم إرسال الإشعار التجريبي الآن!');
         }
 
         async function sendTestPushDelayed() {
-            if (!pushConfig.topic) return;
-            const triggerEpoch = Math.floor(Date.now() / 1000) + 15;
-            try {
-                const res = await fetch(`https://ntfy.sh/${encodeURIComponent(pushConfig.topic)}`, {
-                    method: 'POST',
-                    headers: {
-                        'Title': 'تجربة إشعار الخلفية (بعد 15 ثانية)',
-                        'Priority': '5',
-                        'Tags': 'alarm_clock,rotating_light',
-                        'At': String(triggerEpoch)
-                    },
-                    body: 'ممتاز! الإشعار وصل بنجاح حتى لو المتصفح مقفول.'
-                });
-                showToast(res.ok ? 'تم الجدولة! اقفل كروم الآن وانتظر 15 ثانية' : 'تعذر الجدولة');
-            } catch (e) {
-                showToast('تعذر الاتصال بسيرفر الإشعارات');
+            if (!pushEnabled) {
+                showToast('فعّل إشعارات الخلفية أولاً');
+                return;
             }
+            await sendNtfyNotification({
+                title: 'تجربة خلفية (بعد 15 ثانية)',
+                message: 'نجحت التجربة! الإشعار وصل حتى والمتصفح مغلق.',
+                delaySeconds: 15
+            });
+            showToast('تم جدولة الإشعار بعد 15 ثانية — اقفل المتصفح وجرّب!');
         }
 
-        function playSirenBeep() {
+        function playAlarmSirenOnce() {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) return;
@@ -1774,137 +1731,180 @@
                 osc.frequency.setValueAtTime(880, now);
                 osc.frequency.linearRampToValueAtTime(1320, now + 0.25);
                 osc.frequency.linearRampToValueAtTime(880, now + 0.5);
+                osc.frequency.linearRampToValueAtTime(1320, now + 0.75);
 
                 gain.gain.setValueAtTime(0.001, now);
-                gain.gain.exponentialRampToValueAtTime(0.28, now + 0.05);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                gain.gain.exponentialRampToValueAtTime(0.35, now + 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.85);
 
                 osc.connect(gain);
                 gain.connect(alarmAudioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.56);
+                osc.stop(now + 0.88);
             } catch (e) {}
-        }
-
-        function requestPermissionsAndTestAudio() {
-            playSirenBeep();
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission().catch(() => {});
-            }
-            showToast('تم تفعيل واختبار صوت المنبه الداخلي!');
         }
 
         function triggerStationAlarm(station) {
             const banner = document.getElementById('alarm-banner');
-            const titleEl = document.getElementById('alarm-banner-title');
-            const descEl = document.getElementById('alarm-banner-desc');
+            const title = document.getElementById('alarm-banner-title');
+            const desc = document.getElementById('alarm-banner-desc');
+            if (banner && title && desc) {
+                title.innerText = `انتهى وقت ${station.name}!`;
+                desc.innerText = `بدأ الآن حساب وقت التأخير الزائد تلقائياً — اضغط على ${station.name} للتحصيل`;
+                banner.classList.remove('hidden');
+            }
 
-            if (titleEl) titleEl.innerText = `انتهى وقت ${station.name}!`;
-            if (descEl) descEl.innerText = `${station.name} (${station.isMatch ? 'ماتش واحد' : station.type}) — بدأ احتساب وقت التأخير الزائد الآن`;
-            if (banner) banner.classList.remove('hidden');
-
-            playSirenBeep();
-            clearInterval(alarmIntervalId);
-            alarmIntervalId = setInterval(playSirenBeep, 1100);
+            playAlarmSirenOnce();
+            if (!alarmIntervalId) {
+                alarmIntervalId = setInterval(playAlarmSirenOnce, 1600);
+            }
 
             try {
                 if ('Notification' in window && Notification.permission === 'granted') {
-                    new Notification(`انتهى وقت ${station.name}`, {
-                        body: `بلايستيشن نور الإسلام — يرجى مراجعة ${station.name}`
+                    new Notification(`انتهى وقت ${station.name} - نور الإسلام`, {
+                        body: 'يرجى مراجعة الجهاز وإنهاء الجلسة'
                     });
                 }
             } catch (e) {}
         }
 
         function stopAlarmSound() {
-            clearInterval(alarmIntervalId);
-            alarmIntervalId = null;
+            if (alarmIntervalId) {
+                clearInterval(alarmIntervalId);
+                alarmIntervalId = null;
+            }
             const banner = document.getElementById('alarm-banner');
             if (banner) banner.classList.add('hidden');
         }
 
-        // =========================================================================
-        // 🧮 حساب التكلفة (الماتش الواحد 10 ج + تحويل المالتي + وقت التأخير + تقريب 5)
-        // =========================================================================
-        function calculateExactPlayCost(station, nowTs) {
-            if (!station || station.status !== 'active' || !station.startTime) return 0;
-            const now = nowTs || Date.now();
-            const currentRate = getCurrentRate(station);
+        function requestPermissionsAndTestAudio() {
+            playAlarmSirenOnce();
+            if ('Notification' in window && Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
+            showToast('تم تفعيل واختبار صوت المنبه بنجاح!');
+        }
 
-            if (station.mode === 'fixed' && station.endTime) {
-                const segStart = station.segmentStartTime || station.startTime;
-                if (station.isMatch) {
-                    const baseMatchCost = 10;
-                    if (now <= station.endTime) return baseMatchCost;
-                    const overtimeMs = now - station.endTime;
-                    const overtimeCost = (overtimeMs / 3600000) * currentRate;
-                    return baseMatchCost + overtimeCost;
-                }
+        // =========================================================================
+        // 🔐 تسجيل الدخول والخروج وإظهار الواجهة المناسبة
+        // =========================================================================
+        function handleLogin(event) {
+            event.preventDefault();
+            const u = (document.getElementById('login-username')?.value || '').trim();
+            const p = (document.getElementById('login-password')?.value || '').trim();
+            const errBox = document.getElementById('login-error');
 
-                const effectiveNow = Math.max(now, station.endTime);
-                const elapsedSegMs = Math.max(0, effectiveNow - segStart);
-                return (Number(station.accruedCost) || 0) + (elapsedSegMs / 3600000) * currentRate;
+            const matched = Object.values(AUTH_ACCOUNTS).find(acc => acc.username === u && acc.password === p);
+            if (!matched) {
+                if (errBox) errBox.classList.remove('hidden');
+                return;
             }
 
-            const segStart = station.segmentStartTime || station.startTime;
-            const elapsedSegMs = Math.max(0, now - segStart);
-            return (Number(station.accruedCost) || 0) + (elapsedSegMs / 3600000) * currentRate;
+            if (errBox) errBox.classList.add('hidden');
+            currentUser = { ...matched };
+            try { localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser)); } catch (e) {}
+
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+            applyAuthView();
         }
 
-        function calculateOvertimeCost(station, nowTs) {
-            if (!station || station.status !== 'active' || station.mode !== 'fixed' || !station.endTime) return 0;
-            const now = nowTs || Date.now();
-            if (now <= station.endTime) return 0;
-            const overtimeMs = now - station.endTime;
-            return (overtimeMs / 3600000) * getCurrentRate(station);
+        function logoutUser() {
+            stopAlarmSound();
+            currentUser = null;
+            try { localStorage.removeItem(STORAGE_KEYS.USER); } catch (e) {}
+            applyAuthView();
         }
 
-        function calculatePlayCost(station, nowTs) {
-            const exact = calculateExactPlayCost(station, nowTs);
-            if (station && station.isMatch && (!station.endTime || (nowTs || Date.now()) <= station.endTime)) {
-                return 10;
+        function applyAuthView() {
+            const loginScreen = document.getElementById('login-screen');
+            const staffApp = document.getElementById('staff-app');
+            const managerApp = document.getElementById('manager-app');
+
+            if (!currentUser) {
+                loginScreen.classList.remove('hidden');
+                staffApp.classList.add('hidden');
+                managerApp.classList.add('hidden');
+                safeCreateIcons();
+                return;
             }
-            return roundToFive(exact);
+
+            loginScreen.classList.add('hidden');
+            if (currentUser.role === 'manager') {
+                staffApp.classList.add('hidden');
+                managerApp.classList.remove('hidden');
+                renderManagerDashboard();
+            } else {
+                managerApp.classList.add('hidden');
+                staffApp.classList.remove('hidden');
+                const badge = document.getElementById('active-shift-badge');
+                const menuLabel = document.getElementById('menu-shift-label');
+                if (badge) badge.innerText = currentUser.shiftLabel;
+                if (menuLabel) menuLabel.innerText = currentUser.shiftLabel;
+                renderAllGrids();
+                updatePushUIStatus();
+            }
+            safeCreateIcons();
         }
 
         // =========================================================================
-        // 🖥️ رسم كروت الأجهزة والبلياردو والإحصائيات
+        // 📋 القائمة الجانبية للعمال
+        // =========================================================================
+        function openStaffMenu() {
+            updateMenuBadges();
+            updatePushUIStatus();
+            document.getElementById('staff-side-menu').classList.remove('hidden');
+            safeCreateIcons();
+        }
+
+        function closeStaffMenu() {
+            document.getElementById('staff-side-menu').classList.add('hidden');
+        }
+
+        function updateMenuBadges() {
+            const sessionsRev = roundToFive(shiftHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
+            const totalSurplus = getTotalShiftSurplus();
+            const totalExpenses = getTotalShiftExpenses();
+            const revBadge = document.getElementById('menu-revenue-badge');
+            const surBadge = document.getElementById('menu-surplus-badge');
+            const expBadge = document.getElementById('menu-expenses-badge');
+            if (revBadge) revBadge.innerText = `${sessionsRev + totalSurplus} ج`;
+            if (surBadge) surBadge.innerText = `+${totalSurplus} ج`;
+            if (expBadge) expBadge.innerText = `-${totalExpenses} ج`;
+        }
+
+        // =========================================================================
+        // 🖥️ عرض بطاقات الأجهزة والبلياردو
         // =========================================================================
         function buildStationCardHTML(station, now) {
-            const isActive = station.status === 'active';
             const isBilliards = station.category === 'billiards';
             const isPS5 = station.type === 'PS5';
+            const isActive = station.status === 'active';
             const isFixed = isActive && station.mode === 'fixed' && station.endTime;
             const isOvertime = isFixed && now >= station.endTime;
 
-            let topStripClass = 'from-blue-600 via-sky-500 to-indigo-500';
-            if (isBilliards) topStripClass = 'from-emerald-500 via-teal-400 to-green-600';
-            else if (isPS5) topStripClass = 'from-amber-400 via-yellow-500 to-orange-500';
+            let borderClass = 'border-slate-800/90 hover:border-slate-600';
+            let topStripClass = isBilliards ? 'from-emerald-600 to-teal-500' : (isPS5 ? 'from-amber-500 to-yellow-500' : 'from-blue-600 to-indigo-600');
+            let statusBadge = `<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">متاح</span>`;
 
-            let borderClass = isActive
-                ? (isOvertime ? 'border-red-500 animate-alarm-flash shadow-xl shadow-red-600/20' : 'border-blue-500/60 shadow-lg shadow-blue-500/10')
-                : 'border-slate-800/90 hover:border-slate-700';
-
-            const statusBadge = !isActive
-                ? `<span class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">متاح</span>`
-                : isOvertime
-                    ? `<span class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-red-600 text-white animate-pulse">وقت زائد!</span>`
-                    : station.isMatch
-                        ? `<span class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">⚽ ماتش واحد</span>`
-                        : station.mode === 'open'
-                            ? `<span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span> أوبن</span>`
-                            : `<span class="text-[11px] font-black px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">${station.pushSequenceId ? '🔔 ' : ''}وقت محدد</span>`;
+            if (isOvertime) {
+                borderClass = 'border-red-500 alarm-card-flash';
+                topStripClass = 'from-red-600 to-rose-500';
+                statusBadge = `<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-red-600 text-white animate-pulse">وقت زائد!</span>`;
+            } else if (isActive) {
+                borderClass = isBilliards ? 'border-emerald-500/60 shadow-lg shadow-emerald-500/10' : (isPS5 ? 'border-amber-500/60 shadow-lg shadow-amber-500/10' : 'border-blue-500/60 shadow-lg shadow-blue-500/10');
+                statusBadge = `<span class="text-[10px] font-black px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>شغال</span>`;
+            }
 
             let middleContent = '';
             if (!isActive) {
-                const rateLine = isBilliards
-                    ? 'الساعة: 30 جنيه'
-                    : `عادي: ${station.singleRate} ج • مالتي: ${station.multiRate} ج`;
                 middleContent = `
-                    <div class="py-5 text-center space-y-1.5">
-                        <div class="text-xs font-bold text-slate-400">${rateLine}</div>
-                        <div class="inline-flex items-center gap-1 text-[11px] font-black text-blue-400 bg-blue-500/10 border border-blue-500/25 px-3 py-1 rounded-xl">
-                            <span>اضغط للتشغيل</span>
+                    <div class="pt-3 pb-1 text-center space-y-1.5">
+                        <div class="text-xs font-bold text-slate-400">
+                            ${isBilliards ? `الساعة: <strong class="text-emerald-300">${station.singleRate} ج</strong>` : `عادي: <strong class="text-blue-300">${station.singleRate} ج</strong> • مالتي: <strong class="text-purple-300">${station.multiRate} ج</strong>`}
+                        </div>
+                        <div class="py-2 rounded-xl bg-slate-900/90 border border-slate-800 text-xs font-black text-slate-300">
+                            اضغط لبدء الجلسة
                         </div>
                     </div>
                 `;
@@ -1912,45 +1912,50 @@
                 const playCost = calculatePlayCost(station, now);
                 const extrasCost = roundToFive(station.extras || 0);
                 const totalCost = roundToFive(playCost + extrasCost);
-
                 let timerText = '';
                 let timerSubLabel = '';
                 let progressBarHTML = '';
 
                 if (isFixed) {
-                    const totalDurationMs = Math.max(60000, (station.durationMinutes || 15) * 60000);
                     if (isOvertime) {
-                        const overtimeMs = now - station.endTime;
-                        timerText = `+${formatTimerHHMMSS(overtimeMs)}`;
-                        timerSubLabel = `وقت تأخير زائد (+${roundToFive(calculateOvertimeCost(station, now))} ج)`;
-                        progressBarHTML = `<div class="w-full h-1.5 bg-red-950 rounded-full overflow-hidden mt-2"><div class="h-full bg-red-500 w-full animate-pulse"></div></div>`;
+                        timerText = `+${formatTimerHHMMSS(now - station.endTime)}`;
+                        timerSubLabel = `انتهى ${formatTime12Hour(station.endTime)} • تأخير +${roundToFive(calculateOvertimeCost(station, now))} ج`;
                     } else {
-                        const remMs = Math.max(0, station.endTime - now);
-                        const pct = Math.min(100, Math.max(0, ((totalDurationMs - remMs) / totalDurationMs) * 100));
-                        timerText = formatTimerHHMMSS(remMs);
-                        timerSubLabel = station.isMatch
-                            ? `متبقي من الربع ساعة • 10 ج`
-                            : `ينتهي ${formatTime12Hour(station.endTime)}`;
-                        progressBarHTML = `<div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2"><div class="h-full ${station.isMatch ? 'bg-emerald-400' : 'bg-amber-400'} transition-all" style="width:${pct}%"></div></div>`;
+                        const rem = Math.max(0, station.endTime - now);
+                        const totalDur = Math.max(1, station.endTime - station.startTime);
+                        const pct = Math.min(100, Math.max(0, ((totalDur - rem) / totalDur) * 100));
+                        timerText = formatTimerHHMMSS(rem);
+                        timerSubLabel = `ينتهي الساعة ${formatTime12Hour(station.endTime)}`;
+                        progressBarHTML = `
+                            <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
+                                <div class="h-full bg-gradient-to-l ${station.isMatch ? 'from-emerald-400 to-teal-500' : 'from-amber-400 to-orange-500'}" style="width:${pct}%"></div>
+                            </div>
+                        `;
                     }
                 } else {
-                    const elapsedMs = Math.max(0, now - station.startTime);
-                    timerText = formatTimerHHMMSS(elapsedMs);
-                    timerSubLabel = `بدأ ${formatTime12Hour(station.startTime)}`;
+                    timerText = formatTimerHHMMSS(Math.max(0, now - station.startTime));
+                    timerSubLabel = `بدأ الساعة ${formatTime12Hour(station.startTime)}`;
                 }
 
-                const playModeBadge = isBilliards
-                    ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300">30 ج/ساعة</span>`
-                    : station.isMatch
-                        ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">⚽ ماتش واحد (15 د)</span>`
-                        : station.isMulti
-                            ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 border border-purple-500/35">مالتي (${station.multiRate} ج)</span>`
-                            : `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300 border border-blue-500/30">عادي (${station.singleRate} ج)</span>`;
+                let playModeBadge = '';
+                if (station.isMatch) {
+                    playModeBadge = `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/35">⚽ ماتش واحد</span>`;
+                } else if (isBilliards) {
+                    playModeBadge = `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300">${isFixed ? 'وقت محدد' : 'أوبن'}</span>`;
+                } else {
+                    playModeBadge = `
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${station.isMulti ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/20 text-blue-300'}">${station.isMulti ? 'مالتي' : 'عادي'}</span>
+                        <span class="text-[10px] font-black px-2 py-0.5 rounded-md ${isFixed ? 'bg-amber-500/20 text-amber-300' : 'bg-rose-500/20 text-rose-300'}">${isFixed ? 'محدد' : 'أوبن'}</span>
+                    `;
+                }
 
                 middleContent = `
                     <div class="pt-2.5 pb-1 space-y-2">
-                        <div class="flex items-center justify-between gap-1">
-                            ${playModeBadge}
+                        <div class="flex items-center justify-between gap-1 flex-wrap">
+                            <div class="flex items-center gap-1 flex-wrap">
+                                ${playModeBadge}
+                                ${station.isPaid ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-emerald-500/25 text-emerald-300 border border-emerald-400/50">✅ دافع مقدم</span>` : ''}
+                            </div>
                             ${extrasCost > 0 ? `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-pink-500/20 text-pink-300">مشروبات ${extrasCost} ج</span>` : ''}
                         </div>
                         <div class="bg-slate-950/90 border ${isOvertime ? 'border-red-500/50' : 'border-slate-800'} rounded-2xl p-2.5 text-center">
@@ -1998,11 +2003,8 @@
             const bilGrid = document.getElementById('billiards-grid');
             if (!psGrid || !bilGrid) return;
 
-            const psStations = stations.filter(s => s.category === 'ps');
-            const bilStations = stations.filter(s => s.category === 'billiards');
-
-            psGrid.innerHTML = psStations.map(s => buildStationCardHTML(s, now)).join('');
-            bilGrid.innerHTML = bilStations.map(s => buildStationCardHTML(s, now)).join('');
+            psGrid.innerHTML = stations.filter(s => s.category === 'ps').map(s => buildStationCardHTML(s, now)).join('');
+            bilGrid.innerHTML = stations.filter(s => s.category === 'billiards').map(s => buildStationCardHTML(s, now)).join('');
 
             const activeList = stations.filter(s => s.status === 'active');
             const runningCash = activeList.reduce((sum, s) => sum + roundToFive(calculatePlayCost(s, now) + roundToFive(s.extras || 0)), 0);
@@ -2030,12 +2032,13 @@
         }
 
         // =========================================================================
-        // 🎮 نافذة التحكم بالجهاز + بدء الجلسة + اختيار وقت البدء + التحويل + النقل
+        // 🎮 نافذة التحكم بالجهاز + بدء الجلسة + وقت البدء + التحويل + النقل + المشروبات
         // =========================================================================
         function openStationModal(stationId) {
             selectedStationId = stationId;
             modalActiveTab = 'control';
             preStartMulti = false;
+            preStartPaid = false;
             transferPanelOpen = false;
             cancelConfirmActive = false;
 
@@ -2060,14 +2063,51 @@
             renderStationModal();
         }
 
+        function togglePreStartPaid() {
+            preStartPaid = !preStartPaid;
+            renderStationModal();
+        }
+
+        function toggleActivePaid(stationId) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active') return;
+            station.isPaid = !station.isPaid;
+            saveState();
+            renderAllGrids();
+            renderStationModal();
+            showToast(station.isPaid
+                ? `تم تحديد ${station.name} كـ «دافع مقدم» ✅`
+                : `تم إلغاء علامة الدفع المقدم عن ${station.name}`);
+        }
+
         function toggleTransferPanel() {
             transferPanelOpen = !transferPanelOpen;
             renderStationModal();
         }
 
         function toggleCancelConfirm(show) {
-            cancelConfirmActive = !!show;
+            cancelConfirmActive = show;
             renderStationModal();
+        }
+
+        function addStationExtras(stationId, delta) {
+            const station = stations.find(s => s.id === stationId);
+            if (!station || station.status !== 'active') return;
+            station.extras = Math.max(0, (Number(station.extras) || 0) + Number(delta));
+            saveState();
+            renderAllGrids();
+            renderStationModal();
+        }
+
+        function addCustomExtras(stationId) {
+            const input = document.getElementById('custom-extras-input');
+            const val = parseFloat(input?.value || '0');
+            if (!val || val <= 0) {
+                showToast('أدخل مبلغ المشروبات أولاً');
+                return;
+            }
+            addStationExtras(stationId, Math.round(val));
+            showToast(`تمت إضافة ${Math.round(val)} ج مشروبات`);
         }
 
         function renderStationModal() {
@@ -2076,67 +2116,49 @@
 
             const isBilliards = station.category === 'billiards';
             const isPS5 = station.type === 'PS5';
+            const stationLogs = shiftHistory.filter(h => h.stationId === station.id);
 
             const badge = document.getElementById('modal-station-badge');
-            const title = document.getElementById('modal-station-title');
+            badge.innerText = station.id <= 8 ? station.id : (station.id - 8);
+            badge.className = `w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl text-white ${isBilliards ? 'bg-gradient-to-br from-emerald-600 to-teal-600' : (isPS5 ? 'bg-gradient-to-br from-amber-500 to-orange-600' : 'bg-gradient-to-br from-blue-600 to-indigo-600')}`;
+
+            document.getElementById('modal-station-title').innerText = station.name;
             const typeEl = document.getElementById('modal-station-type');
-            const rateEl = document.getElementById('modal-station-rate');
+            typeEl.innerText = station.type;
+            typeEl.className = `text-xs font-extrabold px-2 py-0.5 rounded-md ${isBilliards ? 'bg-emerald-500/20 text-emerald-300' : (isPS5 ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300')}`;
+            document.getElementById('modal-station-rate').innerText = isBilliards
+                ? `سعر الساعة: ${station.singleRate} ج`
+                : `عادي: ${station.singleRate} ج | مالتي: ${station.multiRate} ج`;
 
-            if (badge) {
-                badge.innerText = station.id <= 8 ? station.id : (station.id - 8);
-                badge.className = `w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl text-white ${
-                    isBilliards ? 'bg-emerald-600' : (isPS5 ? 'bg-amber-500 text-slate-950' : 'bg-blue-600')
-                }`;
-            }
-            if (title) title.innerText = station.name;
-            if (typeEl) {
-                typeEl.innerText = station.type;
-                typeEl.className = `text-xs font-extrabold px-2 py-0.5 rounded-md ${
-                    isBilliards ? 'bg-emerald-500/20 text-emerald-300' : (isPS5 ? 'bg-amber-500/20 text-amber-300' : 'bg-blue-500/20 text-blue-300')
-                }`;
-            }
-            if (rateEl) {
-                rateEl.innerText = isBilliards
-                    ? 'الساعة: 30 ج'
-                    : `عادي: ${station.singleRate} ج | مالتي: ${station.multiRate} ج`;
-            }
+            document.getElementById('tab-history-count').innerText = stationLogs.length;
 
-            const stationLogs = shiftHistory.filter(h => h.stationId === station.id);
-            const countEl = document.getElementById('tab-history-count');
-            if (countEl) countEl.innerText = String(stationLogs.length);
-
-            const ctrlBtn = document.getElementById('tab-btn-control');
-            const histBtn = document.getElementById('tab-btn-history');
+            const btnControl = document.getElementById('tab-btn-control');
+            const btnHistory = document.getElementById('tab-btn-history');
             if (modalActiveTab === 'control') {
-                ctrlBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition bg-blue-600 text-white shadow';
-                histBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white';
+                btnControl.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition bg-blue-600 text-white shadow';
+                btnHistory.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white';
             } else {
-                histBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition bg-blue-600 text-white shadow';
-                ctrlBtn.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white';
+                btnHistory.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition bg-blue-600 text-white shadow';
+                btnControl.className = 'py-2 rounded-xl font-black text-xs flex items-center justify-center gap-1.5 transition text-slate-400 hover:text-white';
             }
 
             const body = document.getElementById('modal-body');
-            if (!body) return;
 
             if (modalActiveTab === 'history') {
                 if (stationLogs.length === 0) {
-                    body.innerHTML = `
-                        <div class="text-center py-10 text-slate-500 text-sm font-bold">
-                            لا توجد جلسات منتهية لهذا الجهاز في الشفت الحالي
-                        </div>
-                    `;
+                    body.innerHTML = `<div class="text-center py-10 text-slate-500 text-xs font-bold">لا توجد جلسات منتهية لهذا الجهاز في الشفت الحالي</div>`;
                 } else {
-                    const totalStationRev = stationLogs.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0);
+                    const totalStRev = roundToFive(stationLogs.reduce((s, l) => s + (Number(l.totalCost) || 0), 0));
                     body.innerHTML = `
-                        <div class="bg-emerald-500/10 border border-emerald-500/30 rounded-2xl p-3 mb-3 flex items-center justify-between">
-                            <span class="text-xs font-bold text-emerald-300">إجمالي إيراد ${station.name}:</span>
-                            <span class="text-lg font-black text-emerald-400 tabular-nums">${totalStationRev} ج</span>
-                        </div>
-                        <div class="space-y-2">
+                        <div class="space-y-2.5">
+                            <div class="bg-emerald-500/15 border border-emerald-500/30 rounded-2xl p-3 flex items-center justify-between text-xs">
+                                <span class="font-bold text-emerald-300">إجمالي ${station.name} اليوم (${stationLogs.length} جلسة):</span>
+                                <strong class="text-base font-black text-emerald-400 tabular-nums">${totalStRev} ج</strong>
+                            </div>
                             ${stationLogs.map(log => `
                                 <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-xs space-y-1">
                                     <div class="flex items-center justify-between">
-                                        <span class="font-black text-white">${log.modeLabel} • ${log.playTypeLabel}</span>
+                                        <span class="font-black text-white">${log.modeLabel} • ${log.playTypeLabel} ${log.isPaid ? '<span class="text-[10px] text-emerald-400 mr-1">✅ دافع مقدم</span>' : ''}</span>
                                         <span class="font-black text-emerald-400 text-sm tabular-nums">${log.totalCost} ج</span>
                                     </div>
                                     <div class="flex items-center justify-between text-[11px] text-slate-400">
@@ -2170,6 +2192,16 @@
                                 </div>
                             </div>
                         ` : ''}
+
+                        <button onclick="togglePreStartPaid()" class="w-full py-3 px-4 rounded-2xl border font-black text-xs flex items-center justify-between transition active:scale-95 ${preStartPaid ? 'bg-emerald-600/25 border-emerald-400 text-emerald-200 shadow-lg shadow-emerald-600/15' : 'bg-slate-950 border-slate-800 text-slate-300 hover:border-emerald-500/40'}">
+                            <span class="flex items-center gap-2">
+                                <i data-lucide="${preStartPaid ? 'check-circle-2' : 'wallet'}" class="w-4 h-4 ${preStartPaid ? 'text-emerald-400' : 'text-slate-400'}"></i>
+                                <span>${preStartPaid ? '✅ دافع الحساب مقدم (مفعّل)' : 'تحديد كـ «دافع الحساب مقدم» قبل البدء'}</span>
+                            </span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-lg ${preStartPaid ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-400'}">
+                                ${preStartPaid ? 'دافع ✓' : 'غير مدفوع'}
+                            </span>
+                        </button>
 
                         <button onclick="requestStartSession(${station.id}, 'open', 0, false)" class="w-full py-4 rounded-2xl bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-black text-base shadow-lg shadow-rose-600/25 flex items-center justify-center gap-2 transition active:scale-95">
                             <i data-lucide="infinity" class="w-5 h-5"></i>
@@ -2236,6 +2268,11 @@
                                     ${station.isMulti ? 'مالتي' : 'عادي'} (${getCurrentRate(station)} ج/س)
                                 </span>
                             ` : ''}
+                            ${station.isPaid ? `
+                                <span class="text-[11px] font-black px-2.5 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-400/50">
+                                    ✅ دافع مقدم
+                                </span>
+                            ` : ''}
                         </div>
 
                         <div id="modal-live-timer" class="text-4xl font-black tabular-nums tracking-wider ${isOvertime ? 'text-red-400' : 'text-white'}">${timerText}</div>
@@ -2271,6 +2308,28 @@
                         ${station.transferNote ? `<div class="text-[11px] text-amber-300 bg-amber-500/10 border border-amber-500/20 rounded-xl py-1 px-2">${station.transferNote}</div>` : ''}
                     </div>
 
+                    <!-- مشروبات وسناكس -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-black text-purple-300 flex items-center gap-1.5">
+                                <i data-lucide="coffee" class="w-4 h-4"></i>
+                                <span>مشروبات وسناكس</span>
+                            </span>
+                            <span class="font-black text-purple-400 tabular-nums">${extrasCost} ج</span>
+                        </div>
+                        <div class="grid grid-cols-5 gap-1.5">
+                            <button onclick="addStationExtras(${station.id}, 5)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-500/25 border border-slate-700 text-xs font-black text-white">+5</button>
+                            <button onclick="addStationExtras(${station.id}, 10)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-500/25 border border-slate-700 text-xs font-black text-white">+10</button>
+                            <button onclick="addStationExtras(${station.id}, 15)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-500/25 border border-slate-700 text-xs font-black text-white">+15</button>
+                            <button onclick="addStationExtras(${station.id}, 20)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-500/25 border border-slate-700 text-xs font-black text-white">+20</button>
+                            <button onclick="addStationExtras(${station.id}, -5)" class="py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/30 text-xs font-black text-rose-300">-5</button>
+                        </div>
+                        <div class="flex gap-1.5">
+                            <input type="number" id="custom-extras-input" min="1" placeholder="مبلغ مشروبات مخصص..." class="flex-1 bg-slate-900 border border-slate-700 focus:border-purple-500 rounded-xl px-3 py-1.5 text-xs text-white font-bold focus:outline-none">
+                            <button onclick="addCustomExtras(${station.id})" class="px-3.5 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs">إضافة</button>
+                        </div>
+                    </div>
+
                     ${station.mode === 'fixed' ? `
                         <div class="grid grid-cols-2 gap-2">
                             <button onclick="extendFixedSession(${station.id}, 30)" class="py-2.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/35 text-amber-300 font-black text-xs flex items-center justify-center gap-1.5 transition active:scale-95">
@@ -2296,25 +2355,15 @@
                         </button>
                     ` : ''}
 
-                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-xs font-black text-purple-300 flex items-center gap-1.5">
-                                <i data-lucide="coffee" class="w-4 h-4"></i>
-                                <span>مشروبات وسناكس</span>
-                            </span>
-                            ${extrasCost > 0 ? `<button onclick="resetExtras(${station.id})" class="text-[11px] text-rose-400 font-bold underline">تصفير (${extrasCost} ج)</button>` : ''}
-                        </div>
-                        <div class="grid grid-cols-4 gap-1.5">
-                            <button onclick="addExtras(${station.id}, 5)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+5 ج</button>
-                            <button onclick="addExtras(${station.id}, 10)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+10 ج</button>
-                            <button onclick="addExtras(${station.id}, 15)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+15 ج</button>
-                            <button onclick="addExtras(${station.id}, 20)" class="py-2 rounded-xl bg-slate-900 hover:bg-purple-600/30 border border-slate-700 text-xs font-black text-white">+20 ج</button>
-                        </div>
-                        <div class="flex gap-2">
-                            <input type="number" id="custom-extras-input" min="1" placeholder="مبلغ مخصص..." class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-bold focus:outline-none">
-                            <button onclick="addCustomExtras(${station.id})" class="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs">إضافة</button>
-                        </div>
-                    </div>
+                    <button onclick="toggleActivePaid(${station.id})" class="w-full py-3 px-4 rounded-2xl border font-black text-xs flex items-center justify-between transition active:scale-95 ${station.isPaid ? 'bg-emerald-600/25 hover:bg-emerald-600/35 border-emerald-400/70 text-emerald-200' : 'bg-slate-950 hover:bg-emerald-500/15 border-slate-700 hover:border-emerald-500/40 text-slate-200'}">
+                        <span class="flex items-center gap-2">
+                            <i data-lucide="${station.isPaid ? 'check-circle-2' : 'wallet'}" class="w-4 h-4 ${station.isPaid ? 'text-emerald-400' : 'text-emerald-300'}"></i>
+                            <span>${station.isPaid ? '✅ هذا الجهاز دافع مقدم (اضغط للإلغاء)' : 'تحديد الجهاز كـ «دافع مقدم»'}</span>
+                        </span>
+                        <span class="text-[10px] px-2 py-0.5 rounded-lg ${station.isPaid ? 'bg-emerald-500 text-slate-950 font-black' : 'bg-slate-800 text-slate-400'}">
+                            ${station.isPaid ? 'دافع ✓' : 'لم يدفع'}
+                        </span>
+                    </button>
 
                     <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2">
                         <button onclick="toggleTransferPanel()" class="w-full flex items-center justify-between text-xs font-black text-amber-300">
@@ -2382,14 +2431,9 @@
                 mode,
                 durationMinutes: Number(durationMinutes) || 0,
                 isMatch: !!isMatch,
-                isMulti: station.category === 'billiards' ? false : (isMatch ? false : preStartMulti)
+                isMulti: station.category === 'billiards' ? false : (isMatch ? false : preStartMulti),
+                isPaid: !!preStartPaid
             };
-
-            const descEl = document.getElementById('stm-session-desc');
-            const modeText = isMatch
-                ? '⚽ ماتش واحد (15 دقيقة — 10 ج)'
-                : (mode === 'open' ? 'وقت مفتوح (أوبن)' : `وقت محدد (${durationMinutes} دقيقة)`);
-            if (descEl) descEl.innerText = `${station.name} • ${modeText}`;
 
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, '0');
@@ -2397,21 +2441,28 @@
             const timeInput = document.getElementById('stm-time-input');
             if (timeInput) timeInput.value = `${hh}:${mm}`;
 
+            const descEl = document.getElementById('stm-session-desc');
+            if (descEl) {
+                const label = isMatch
+                    ? '⚽ ماتش واحد (15 دقيقة — 10 ج)'
+                    : (mode === 'open' ? 'وقت مفتوح (أوبن)' : `وقت محدد (${durationMinutes} دقيقة)`);
+                descEl.innerText = `${station.name} • ${label}`;
+            }
+
             document.getElementById('start-time-modal').classList.remove('hidden');
             safeCreateIcons();
         }
 
         function closeStartTimeModal() {
             pendingSessionStart = null;
-            const modal = document.getElementById('start-time-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('start-time-modal').classList.add('hidden');
         }
 
         function confirmStartNow() {
             if (!pendingSessionStart) return;
             const req = { ...pendingSessionStart };
             closeStartTimeModal();
-            executeStartSession(req.stationId, req.mode, req.durationMinutes, req.isMatch, req.isMulti, Date.now());
+            executeStartSession(req.stationId, req.mode, req.durationMinutes, req.isMatch, req.isMulti, Date.now(), req.isPaid);
         }
 
         function confirmStartWithCustomTime() {
@@ -2436,10 +2487,10 @@
 
             const req = { ...pendingSessionStart };
             closeStartTimeModal();
-            executeStartSession(req.stationId, req.mode, req.durationMinutes, req.isMatch, req.isMulti, customDate.getTime());
+            executeStartSession(req.stationId, req.mode, req.durationMinutes, req.isMatch, req.isMulti, customDate.getTime(), req.isPaid);
         }
 
-        function executeStartSession(stationId, mode, durationMinutes, isMatch, isMulti, customStartTs) {
+        function executeStartSession(stationId, mode, durationMinutes, isMatch, isMulti, customStartTs, isPaid) {
             const station = stations.find(s => s.id === stationId);
             if (!station) return;
 
@@ -2448,51 +2499,28 @@
             station.mode = mode;
             station.isMatch = !!isMatch;
             station.isMulti = !!isMulti;
+            station.isPaid = !!isPaid;
             station.startTime = startTs;
             station.segmentStartTime = startTs;
             station.accruedCost = 0;
             station.costAtEndTime = null;
-            station.durationMinutes = mode === 'fixed' ? durationMinutes : 0;
-            station.endTime = mode === 'fixed' ? (startTs + durationMinutes * 60000) : null;
+            station.durationMinutes = mode === 'fixed' ? (Number(durationMinutes) || 0) : 0;
+            station.endTime = mode === 'fixed' ? (startTs + station.durationMinutes * 60000) : null;
             station.extras = 0;
             station.alarmTriggered = false;
             station.transferNote = null;
             station.modeSwitchNote = null;
             station.hadMultiSwitch = false;
-            station.pushSequenceId = null;
-            station.pushSequenceIds = [];
 
             saveState();
             renderAllGrids();
             closeStationModal();
 
-            if (mode === 'fixed' && station.endTime && station.endTime > Date.now()) {
+            if (mode === 'fixed') {
                 scheduleStationPushNotification(station);
             }
 
-            showToast(`تم تشغيل ${station.name} بنجاح (بدأ ${formatTime12Hour(startTs)})`);
-        }
-
-        function toggleActiveMulti(stationId) {
-            const station = stations.find(s => s.id === stationId);
-            if (!station || station.status !== 'active' || station.category === 'billiards') return;
-
-            const now = Date.now();
-            const oldLabel = station.isMatch ? 'ماتش واحد' : (station.isMulti ? 'مالتي' : 'عادي');
-
-            station.accruedCost = calculateExactPlayCost(station, now);
-            station.segmentStartTime = now;
-            station.isMatch = false;
-            station.isMulti = !station.isMulti;
-            station.hadMultiSwitch = true;
-
-            const newLabel = station.isMulti ? 'مالتي' : 'عادي';
-            station.modeSwitchNote = `تم التحويل من ${oldLabel} إلى ${newLabel} الساعة ${formatTime12Hour(now)}`;
-
-            saveState();
-            renderAllGrids();
-            renderStationModal();
-            showToast(`تم تحويل ${station.name} إلى ${newLabel} مع حفظ حساب الفترة السابقة`);
+            showToast(`تم تشغيل ${station.name} بنجاح!`);
         }
 
         function extendFixedSession(stationId, extraMinutes) {
@@ -2500,18 +2528,14 @@
             if (!station || station.status !== 'active' || station.mode !== 'fixed') return;
 
             const now = Date.now();
-            if (station.isMatch) {
-                station.accruedCost = calculateExactPlayCost(station, now);
-                station.segmentStartTime = now;
-                station.isMatch = false;
-            }
-            const baseEnd = Math.max(now, station.endTime || now);
+            // إذا كان الجهاز في وقت تأخير، نمدد من الوقت الحالي أو من نهاية الوقت الأصلي أيهما أكبر
+            const baseEnd = Math.max(station.endTime || now, now);
             station.endTime = baseEnd + extraMinutes * 60000;
-            station.costAtEndTime = null;
-            station.durationMinutes = (station.durationMinutes || 0) + extraMinutes;
+            station.durationMinutes = (Number(station.durationMinutes) || 0) + extraMinutes;
+            station.isMatch = false; // بعد التمديد يتحول لحساب عادي
             station.alarmTriggered = false;
+            station.costAtEndTime = null;
 
-            stopAlarmSound();
             saveState();
             renderAllGrids();
             renderStationModal();
@@ -2519,34 +2543,37 @@
             showToast(`تم تمديد ${station.name} بمقدار ${extraMinutes} دقيقة`);
         }
 
-        function addExtras(stationId, amount) {
+        function toggleActiveMulti(stationId) {
             const station = stations.find(s => s.id === stationId);
-            if (!station || station.status !== 'active') return;
-            station.extras = (Number(station.extras) || 0) + Number(amount);
-            saveState();
-            renderAllGrids();
-            renderStationModal();
-            showToast(`تمت إضافة ${amount} ج مشروبات لـ ${station.name}`);
-        }
+            if (!station || station.status !== 'active' || station.category === 'billiards') return;
 
-        function addCustomExtras(stationId) {
-            const input = document.getElementById('custom-extras-input');
-            const val = parseFloat(input?.value || '0');
-            if (!val || val <= 0) {
-                showToast('يرجى إدخال مبلغ صحيح');
-                return;
+            const now = Date.now();
+            const segStart = station.segmentStartTime || station.startTime || now;
+            const oldRate = getCurrentRate(station);
+
+            if (station.isMatch) {
+                // إذا كان ماتش واحد وتحول لمالتي، نثبّت حساب الفترة الماضية
+                const elapsedMs = Math.max(0, now - segStart);
+                station.accruedCost = (Number(station.accruedCost) || 0) + calculateRawSegmentCost(elapsedMs, oldRate);
+                station.isMatch = false;
+            } else {
+                const elapsedMs = Math.max(0, now - segStart);
+                station.accruedCost = (Number(station.accruedCost) || 0) + calculateRawSegmentCost(elapsedMs, oldRate);
             }
-            addExtras(stationId, val);
-        }
 
-        function resetExtras(stationId) {
-            const station = stations.find(s => s.id === stationId);
-            if (!station) return;
-            station.extras = 0;
+            if (station.mode === 'fixed' && station.endTime && now >= station.endTime && station.costAtEndTime === null) {
+                station.costAtEndTime = station.accruedCost;
+            }
+
+            station.segmentStartTime = now;
+            station.isMulti = !station.isMulti;
+            station.hadMultiSwitch = true;
+            station.modeSwitchNote = `تم التحويل إلى ${station.isMulti ? 'مالتي' : 'عادي'} الساعة ${formatTime12Hour(now)}`;
+
             saveState();
             renderAllGrids();
             renderStationModal();
-            showToast('تم تصفير المشروبات');
+            showToast(`تم تحويل ${station.name} إلى ${station.isMulti ? 'مالتي' : 'عادي'} وحفظ حساب الفترة السابقة`);
         }
 
         async function transferSession(fromId, toId) {
@@ -2555,7 +2582,10 @@
             if (!fromSt || !toSt || fromSt.status !== 'active' || toSt.status !== 'free') return;
 
             const now = Date.now();
-            const accruedUntilNow = calculateExactPlayCost(fromSt, now);
+            const segStart = fromSt.segmentStartTime || fromSt.startTime || now;
+            const oldRate = getCurrentRate(fromSt);
+            const elapsedSegMs = Math.max(0, now - segStart);
+            const frozenCost = (Number(fromSt.accruedCost) || 0) + calculateRawSegmentCost(elapsedSegMs, oldRate);
 
             await cancelStationPushNotification(fromSt);
 
@@ -2563,31 +2593,29 @@
             toSt.mode = fromSt.mode;
             toSt.isMatch = fromSt.isMatch && toSt.category === 'ps';
             toSt.isMulti = toSt.category === 'billiards' ? false : fromSt.isMulti;
+            toSt.isPaid = !!fromSt.isPaid;
             toSt.startTime = fromSt.startTime;
             toSt.segmentStartTime = now;
-            toSt.accruedCost = accruedUntilNow;
+            toSt.accruedCost = frozenCost;
+            toSt.costAtEndTime = fromSt.costAtEndTime;
             toSt.endTime = fromSt.endTime;
             toSt.durationMinutes = fromSt.durationMinutes;
             toSt.extras = fromSt.extras;
             toSt.alarmTriggered = fromSt.alarmTriggered;
-            toSt.hadMultiSwitch = fromSt.hadMultiSwitch;
             toSt.modeSwitchNote = fromSt.modeSwitchNote;
-            toSt.transferNote = `نُقل من ${fromSt.name} الساعة ${formatTime12Hour(now)}`;
-            toSt.pushSequenceId = null;
-            toSt.pushSequenceIds = [];
+            toSt.hadMultiSwitch = fromSt.hadMultiSwitch;
+            toSt.transferNote = `منقول من ${fromSt.name} الساعة ${formatTime12Hour(now)}`;
 
             clearStationObject(fromSt);
             saveState();
             renderAllGrids();
+            closeStationModal();
 
-            if (toSt.mode === 'fixed' && toSt.endTime && toSt.endTime > Date.now()) {
+            if (toSt.mode === 'fixed' && toSt.endTime && toSt.endTime > now) {
                 scheduleStationPushNotification(toSt);
             }
 
-            selectedStationId = toSt.id;
-            transferPanelOpen = false;
-            renderStationModal();
-            showToast(`تم نقل الجلسة من ${fromSt.name} إلى ${toSt.name}`);
+            showToast(`تم نقل الجلسة من ${fromSt.name} إلى ${toSt.name} بنجاح!`);
         }
 
         function clearStationObject(st) {
@@ -2595,6 +2623,7 @@
             st.mode = null;
             st.isMatch = false;
             st.isMulti = false;
+            st.isPaid = false;
             st.startTime = null;
             st.segmentStartTime = null;
             st.accruedCost = 0;
@@ -2611,15 +2640,14 @@
         }
 
         async function resetStationToFree(stationId) {
-            const station = stations.find(s => s.id === stationId);
-            if (!station) return;
-            await cancelStationPushNotification(station);
-            clearStationObject(station);
-            stopAlarmSound();
+            const st = stations.find(s => s.id === stationId);
+            if (!st) return;
+            await cancelStationPushNotification(st);
+            clearStationObject(st);
             saveState();
             renderAllGrids();
             closeStationModal();
-            showToast(`تم إلغاء الجلسة وإعادة ${station.name} متاحاً`);
+            showToast(`تم إلغاء جلسة ${st.name} بنجاح`);
         }
 
         async function endSession(stationId) {
@@ -2633,30 +2661,30 @@
 
             const isFixed = station.mode === 'fixed' && station.endTime;
             const overtimeMs = (isFixed && now > station.endTime) ? (now - station.endTime) : 0;
-            const overtimeCost = overtimeMs > 0 ? roundToFive(calculateOvertimeCost(station, now)) : 0;
-            const totalElapsedMs = Math.max(60000, now - station.startTime);
+            const overtimeLabel = overtimeMs >= 60000 ? `${formatDurationArabic(overtimeMs)} (+${roundToFive(calculateOvertimeCost(station, now))} ج)` : null;
 
-            const modeLabel = station.isMatch ? '⚽ ماتش واحد (15 دقيقة)' : (isFixed ? `وقت محدد (${station.durationMinutes} دقيقة)` : 'وقت مفتوح');
+            const actualDurationMs = Math.max(60000, now - station.startTime);
+            const modeLabel = station.isMatch ? '⚽ ماتش واحد (15 د)' : (isFixed ? `وقت محدد (${station.durationMinutes} د)` : 'وقت مفتوح');
             const playTypeLabel = station.category === 'billiards'
                 ? 'بلياردو'
-                : (station.isMatch ? 'ماتش واحد' : (station.hadMultiSwitch ? `مختلط (انتهى ${station.isMulti ? 'مالتي' : 'عادي'})` : (station.isMulti ? 'مالتي' : 'عادي')));
+                : (station.isMatch ? 'ماتش واحد' : (station.hadMultiSwitch ? `مختلط (${station.isMulti ? 'انتهى مالتي' : 'انتهى عادي'})` : (station.isMulti ? 'مالتي' : 'عادي')));
 
             const record = {
-                id: `sess-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                id: `sess-${Date.now()}`,
                 stationId: station.id,
                 stationName: station.name,
                 stationType: station.type,
-                stationCategory: station.category,
                 mode: station.mode,
                 modeLabel,
                 playTypeLabel,
                 startTime: station.startTime,
                 endTime: now,
-                durationLabel: formatDurationArabic(totalElapsedMs),
-                overtimeLabel: overtimeMs > 0 ? `${formatDurationArabic(overtimeMs)} (+${overtimeCost} ج)` : null,
+                durationLabel: formatDurationArabic(actualDurationMs),
+                overtimeLabel,
                 playCost,
                 extrasCost,
                 totalCost,
+                isPaid: !!station.isPaid,
                 transferNote: station.transferNote || null,
                 modeSwitchNote: station.modeSwitchNote || null
             };
@@ -2664,15 +2692,21 @@
             shiftHistory.unshift(record);
             await cancelStationPushNotification(station);
             clearStationObject(station);
-            stopAlarmSound();
             saveState();
+
+            // إذا لم يعد هناك أي جهاز منتهي الوقت، أوقف صوت المنبه
+            const anyAlarming = stations.some(s => s.status === 'active' && s.mode === 'fixed' && s.endTime && now >= s.endTime);
+            if (!anyAlarming) stopAlarmSound();
 
             renderAllGrids();
             closeStationModal();
-            showInvoiceModal(record);
+            openInvoiceModal(record);
         }
 
-        function showInvoiceModal(record) {
+        // =========================================================================
+        // 🧾 نافذة الفاتورة النهائية
+        // =========================================================================
+        function openInvoiceModal(record) {
             document.getElementById('inv-station-info').innerText = `${record.stationName} (${record.stationType})`;
             document.getElementById('inv-mode').innerText = record.modeLabel;
             document.getElementById('inv-play-type').innerText = record.playTypeLabel;
@@ -2683,26 +2717,32 @@
             document.getElementById('inv-extras-cost').innerText = `${record.extrasCost} ج`;
             document.getElementById('inv-total').innerText = `${record.totalCost} جنيه`;
 
+            const paidBanner = document.getElementById('inv-paid-banner');
+            if (paidBanner) {
+                if (record.isPaid) paidBanner.classList.remove('hidden');
+                else paidBanner.classList.add('hidden');
+            }
+
             const trRow = document.getElementById('inv-transfer-row');
             if (record.transferNote) {
-                trRow.classList.remove('hidden');
                 document.getElementById('inv-transfer-note').innerText = record.transferNote;
+                trRow.classList.remove('hidden');
             } else {
                 trRow.classList.add('hidden');
             }
 
             const swRow = document.getElementById('inv-switch-row');
             if (record.modeSwitchNote) {
-                swRow.classList.remove('hidden');
                 document.getElementById('inv-switch-note').innerText = record.modeSwitchNote;
+                swRow.classList.remove('hidden');
             } else {
                 swRow.classList.add('hidden');
             }
 
             const otRow = document.getElementById('inv-overtime-row');
             if (record.overtimeLabel) {
-                otRow.classList.remove('hidden');
                 document.getElementById('inv-overtime-val').innerText = record.overtimeLabel;
+                otRow.classList.remove('hidden');
             } else {
                 otRow.classList.add('hidden');
             }
@@ -2712,70 +2752,58 @@
         }
 
         function closeInvoiceModal() {
-            const modal = document.getElementById('invoice-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('invoice-modal').classList.add('hidden');
         }
 
         // =========================================================================
-        // 🧾 سجل اليومية العام + التصفية
+        // 📒 نافذة سجل اليومية العام
         // =========================================================================
-        function openShiftModal(filter) {
-            shiftModalFilter = filter || 'all';
+        function openShiftModal(filterId = 'all') {
+            shiftFilterStationId = filterId;
             renderShiftModal();
             document.getElementById('shift-modal').classList.remove('hidden');
             safeCreateIcons();
         }
 
         function closeShiftModal() {
-            const modal = document.getElementById('shift-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('shift-modal').classList.add('hidden');
         }
 
-        function setShiftModalFilter(filterVal) {
-            shiftModalFilter = filterVal;
+        function setShiftFilter(filterId) {
+            shiftFilterStationId = filterId;
             renderShiftModal();
         }
 
         function renderShiftModal() {
-            const filterBar = document.getElementById('shift-filter-bar');
-            const filterButtons = [
-                { key: 'all', label: 'الكل' },
-                ...stations.map(s => ({ key: String(s.id), label: s.name }))
-            ];
-            filterBar.innerHTML = filterButtons.map(b => `
-                <button onclick="setShiftModalFilter('${b.key}')" class="px-3 py-1.5 rounded-xl text-xs font-black whitespace-nowrap transition ${
-                    String(shiftModalFilter) === b.key
-                        ? 'bg-emerald-500 text-slate-950'
-                        : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                }">${b.label}</button>
-            `).join('');
+            const bar = document.getElementById('shift-filter-bar');
+            const buttons = [{ id: 'all', label: 'الكل' }, ...stations.map(s => ({ id: s.id, label: s.name }))];
+            bar.innerHTML = buttons.map(b => {
+                const active = String(shiftFilterStationId) === String(b.id);
+                return `<button onclick="setShiftFilter('${b.id}')" class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-black transition ${active ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'}">${b.label}</button>`;
+            }).join('');
 
-            const filtered = shiftModalFilter === 'all'
+            const filtered = shiftFilterStationId === 'all'
                 ? shiftHistory
-                : shiftHistory.filter(h => String(h.stationId) === String(shiftModalFilter));
+                : shiftHistory.filter(h => String(h.stationId) === String(shiftFilterStationId));
 
-            const sessionsSum = roundToFive(filtered.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
-            const totalSurplus = shiftModalFilter === 'all' ? getTotalShiftSurplus() : 0;
-            const totalDisplay = sessionsSum + totalSurplus;
+            const totalRev = roundToFive(filtered.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
+            const extraSurplus = shiftFilterStationId === 'all' ? getTotalShiftSurplus() : 0;
 
-            const labelEl = document.getElementById('shift-revenue-label');
-            if (labelEl) {
-                labelEl.innerText = shiftModalFilter === 'all'
-                    ? (totalSurplus > 0 ? `إجمالي إيراد الوردية (شامل +${totalSurplus} ج زيادات)` : 'إجمالي إيراد الوردية (الكل)')
-                    : `إيراد ${stations.find(s => String(s.id) === String(shiftModalFilter))?.name || ''}`;
-            }
+            document.getElementById('shift-revenue-label').innerText = shiftFilterStationId === 'all'
+                ? (extraSurplus > 0 ? `إجمالي الوردية (الكل + ${extraSurplus} ج زيادات)` : 'إجمالي إيراد الوردية (الكل)')
+                : `إجمالي إيراد ${stations.find(s => String(s.id) === String(shiftFilterStationId))?.name || ''}`;
 
-            document.getElementById('shift-total-revenue').innerText = `${totalDisplay} جنيه`;
-            document.getElementById('shift-total-count').innerText = String(filtered.length);
+            document.getElementById('shift-total-revenue').innerText = `${totalRev + extraSurplus} جنيه`;
+            document.getElementById('shift-total-count').innerText = filtered.length;
 
             const listEl = document.getElementById('shift-history-list');
             if (filtered.length === 0) {
-                listEl.innerHTML = `<div class="text-center py-10 text-slate-500 text-sm font-bold">لا توجد جلسات مسجلة حتى الآن</div>`;
+                listEl.innerHTML = `<div class="text-center py-10 text-slate-500 text-xs font-bold">لا توجد جلسات منتهية مسجلة حتى الآن</div>`;
             } else {
                 listEl.innerHTML = filtered.map(item => `
                     <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-3 text-xs space-y-1">
                         <div class="flex items-center justify-between">
-                            <span class="font-black text-white">${item.stationName} <span class="text-slate-400 font-bold">(${item.playTypeLabel})</span></span>
+                            <span class="font-black text-white">${item.stationName} <span class="text-slate-400 font-bold">(${item.playTypeLabel})</span> ${item.isPaid ? '<span class="text-[10px] text-emerald-400 mr-1">✅ دافع مقدم</span>' : ''}</span>
                             <span class="font-black text-emerald-400 text-sm tabular-nums">${item.totalCost} ج</span>
                         </div>
                         <div class="flex items-center justify-between text-[11px] text-slate-400">
@@ -2798,8 +2826,7 @@
         }
 
         function closeSurplusModal() {
-            const modal = document.getElementById('surplus-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('surplus-modal').classList.add('hidden');
         }
 
         function setSurplusReasonPreset(text) {
@@ -2876,8 +2903,7 @@
         }
 
         function closeExpensesModal() {
-            const modal = document.getElementById('expenses-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('expenses-modal').classList.add('hidden');
         }
 
         function setExpenseReasonPreset(text) {
@@ -2957,8 +2983,7 @@
             const activeStations = stations.filter(s => s.status === 'active');
 
             document.getElementById('nd-current-revenue').innerText = `${totalRev} ج`;
-            const expEl = document.getElementById('nd-current-expenses');
-            if (expEl) expEl.innerText = `${totalExp} ج`;
+            document.getElementById('nd-current-expenses').innerText = `${totalExp} ج`;
             document.getElementById('nd-current-sessions').innerText = `${shiftHistory.length}`;
 
             const warnBox = document.getElementById('nd-active-warning');
@@ -2991,8 +3016,7 @@
         }
 
         function closeNewDayModal() {
-            const modal = document.getElementById('new-day-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('new-day-modal').classList.add('hidden');
         }
 
         async function executeNewDay(stopActive) {
@@ -3015,10 +3039,42 @@
         }
 
         // =========================================================================
-        // 📤 تسليم الشفت للمدير (Handover)
+        // 📤 تسليم الشفت للمدير (Handover) مع اختيار التاريخ
         // =========================================================================
-        function buildShiftHandoverPayload() {
+        function setHandoverDateOffset(daysOffset) {
+            const d = new Date();
+            d.setDate(d.getDate() + (Number(daysOffset) || 0));
+            const input = document.getElementById('ho-date-input');
+            if (input) input.value = getLocalDateKey(d);
+            updateHandoverDateButtonsUI();
+        }
+
+        function updateHandoverDateButtonsUI() {
+            const input = document.getElementById('ho-date-input');
+            const todayBtn = document.getElementById('ho-date-today-btn');
+            const yestBtn = document.getElementById('ho-date-yesterday-btn');
+            if (!input || !todayBtn || !yestBtn) return;
+
+            const todayKey = getLocalDateKey(new Date());
+            const yestDate = new Date();
+            yestDate.setDate(yestDate.getDate() - 1);
+            const yestKey = getLocalDateKey(yestDate);
+
+            const val = input.value;
+            todayBtn.className = val === todayKey
+                ? 'px-2.5 py-1 rounded-lg bg-blue-600 text-white text-[11px] font-black transition active:scale-95'
+                : 'px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-blue-600/30 text-slate-300 border border-slate-700 text-[11px] font-black transition active:scale-95';
+            yestBtn.className = val === yestKey
+                ? 'px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 text-[11px] font-black transition active:scale-95'
+                : 'px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-amber-500/25 text-amber-300 border border-amber-500/35 text-[11px] font-black transition active:scale-95';
+        }
+
+        function buildShiftHandoverPayload(customDateKey) {
             const now = new Date();
+            const chosenDateKey = (customDateKey && /^\d{4}-\d{2}-\d{2}$/.test(customDateKey))
+                ? customDateKey
+                : getLocalDateKey(now);
+
             const stationsBreakdown = stations.map(st => {
                 const logs = shiftHistory.filter(h => h.stationId === st.id);
                 const totalRevenue = roundToFive(logs.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
@@ -3045,7 +3101,7 @@
 
             return {
                 id: `shift-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-                dateKey: getLocalDateKey(now),
+                dateKey: chosenDateKey,
                 handedOverAt: now.getTime(),
                 handedOverTimeLabel: formatTime12Hour(now.getTime()),
                 shiftType: currentUser?.shiftType || 'morning',
@@ -3064,108 +3120,76 @@
             };
         }
 
-        function renderStationBreakdownCardHTML(st) {
-            const hasActivity = st.sessionsCount > 0;
-            return `
-                <div class="bg-slate-950/90 border ${hasActivity ? 'border-slate-700' : 'border-slate-800/70 opacity-65'} rounded-2xl p-3 flex items-center justify-between text-xs">
-                    <div>
-                        <span class="font-black text-white">${st.stationName}</span>
-                        <span class="text-[10px] text-slate-400 mr-1">(${st.stationType})</span>
-                        <div class="text-[10px] text-slate-400 mt-0.5">
-                            ${st.sessionsCount} جلسة ${st.totalExtras > 0 ? `• مشروبات ${st.totalExtras} ج` : ''}
-                        </div>
-                    </div>
-                    <span class="font-black ${hasActivity ? 'text-emerald-400' : 'text-slate-500'} text-sm tabular-nums">${st.totalRevenue} ج</span>
-                </div>
-            `;
-        }
-
         function openHandoverModal() {
-            const payload = buildShiftHandoverPayload();
+            const dateInput = document.getElementById('ho-date-input');
+            if (dateInput) {
+                dateInput.value = getLocalDateKey(new Date());
+                updateHandoverDateButtonsUI();
+            }
+
+            const payload = buildShiftHandoverPayload(dateInput?.value);
             document.getElementById('ho-modal-title').innerText = `تسليم ${payload.shiftLabel} - نور الإسلام`;
             document.getElementById('ho-total-revenue').innerText = `${payload.totalRevenue} ج`;
-            document.getElementById('ho-total-sessions').innerText = String(payload.totalSessions);
+            document.getElementById('ho-total-sessions').innerText = payload.totalSessions;
             document.getElementById('ho-total-extras').innerText = `${payload.totalExtras} ج`;
             document.getElementById('ho-total-surplus').innerText = `+${payload.totalSurplus} ج`;
             document.getElementById('ho-total-expenses').innerText = `${payload.totalExpenses} ج`;
             document.getElementById('ho-net-cash').innerText = `${payload.netCash} ج`;
 
-            const activeCount = stations.filter(s => s.status === 'active').length;
+            const activeStations = stations.filter(s => s.status === 'active');
             const warnEl = document.getElementById('ho-active-warning');
-            if (activeCount > 0) {
+            if (activeStations.length > 0) {
                 warnEl.classList.remove('hidden');
-                document.getElementById('ho-active-warning-text').innerText = `يوجد ${activeCount} أجهزة شغالة حالياً ولم تُقفل بعد؛ سيتم تسليم الجلسات المنتهية فقط.`;
+                document.getElementById('ho-active-warning-text').innerText = `يوجد ${activeStations.length} أجهزة شغالة حالياً ولم تُقفل بعد؛ سيتم تسليم الجلسات المنتهية فقط.`;
             } else {
                 warnEl.classList.add('hidden');
             }
 
-            const psBreakdown = payload.stationsBreakdown.filter(s => s.stationCategory === 'ps');
-            const billiardsBreakdown = payload.stationsBreakdown.filter(s => s.stationCategory === 'billiards');
-
-            const surplusSectionHTML = payload.surplusList.length > 0 ? `
-                <div class="text-xs font-black text-cyan-300 flex items-center gap-1.5 pt-3 border-t border-slate-800">
-                    <i data-lucide="plus-circle" class="w-4 h-4"></i> زيادات الدرج المضافة لإجمالي الشفت (+${payload.totalSurplus} ج)
-                </div>
-                <div class="bg-slate-950/90 border border-cyan-500/25 rounded-2xl p-3 space-y-1.5">
-                    ${payload.surplusList.map(item => `
-                        <div class="flex items-center justify-between text-xs bg-slate-900/90 rounded-xl px-2.5 py-2 border border-slate-800/80">
-                            <div>
-                                <span class="font-bold text-slate-200">${item.reason}</span>
-                                <span class="text-[10px] text-slate-400 mr-1.5">(${formatTime12Hour(item.time)})</span>
-                            </div>
-                            <span class="font-black text-cyan-400 tabular-nums">+ ${item.amount} ج</span>
-                        </div>
-                    `).join('')}
+            const bdEl = document.getElementById('ho-stations-breakdown');
+            const surplusHTML = payload.surplusList.length > 0 ? `
+                <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-2xl p-3 text-xs space-y-1">
+                    <div class="font-black text-cyan-300">الزيادات (+${payload.totalSurplus} ج):</div>
+                    ${payload.surplusList.map(s => `<div class="flex justify-between text-slate-200"><span>${s.reason}</span><strong class="text-cyan-400 tabular-nums">+${s.amount} ج</strong></div>`).join('')}
                 </div>
             ` : '';
 
-            const expensesSectionHTML = payload.expenses.length > 0 ? `
-                <div class="text-xs font-black text-orange-300 flex items-center gap-1.5 pt-3 border-t border-slate-800">
-                    <i data-lucide="banknote" class="w-4 h-4"></i> مصروفات الشفت المخصومة من الدرج (-${payload.totalExpenses} ج)
-                </div>
-                <div class="bg-slate-950/90 border border-orange-500/25 rounded-2xl p-3 space-y-1.5">
-                    ${payload.expenses.map(exp => `
-                        <div class="flex items-center justify-between text-xs bg-slate-900/90 rounded-xl px-2.5 py-2 border border-slate-800/80">
-                            <div>
-                                <span class="font-bold text-slate-200">${exp.reason}</span>
-                                <span class="text-[10px] text-slate-400 mr-1.5">(${formatTime12Hour(exp.time)})</span>
-                            </div>
-                            <span class="font-black text-orange-400 tabular-nums">- ${exp.amount} ج</span>
-                        </div>
-                    `).join('')}
+            const expensesHTML = payload.expenses.length > 0 ? `
+                <div class="bg-orange-500/10 border border-orange-500/30 rounded-2xl p-3 text-xs space-y-1">
+                    <div class="font-black text-orange-300">المصروفات (-${payload.totalExpenses} ج):</div>
+                    ${payload.expenses.map(e => `<div class="flex justify-between text-slate-200"><span>${e.reason}</span><strong class="text-orange-400 tabular-nums">-${e.amount} ج</strong></div>`).join('')}
                 </div>
             ` : '';
 
-            document.getElementById('ho-stations-breakdown').innerHTML = `
-                <div class="text-xs font-black text-blue-300 flex items-center gap-1.5">
-                    <i data-lucide="gamepad-2" class="w-4 h-4"></i> أجهزة البلايستيشن (1 إلى 8)
+            bdEl.innerHTML = `
+                ${surplusHTML}
+                ${expensesHTML}
+                <div class="grid grid-cols-2 gap-2">
+                    ${payload.stationsBreakdown.map(st => `
+                        <div class="bg-slate-950/90 border border-slate-800 rounded-2xl p-2.5 text-xs flex items-center justify-between">
+                            <div>
+                                <span class="font-black text-white block">${st.stationName}</span>
+                                <span class="text-[10px] text-slate-400">${st.sessionsCount} جلسة</span>
+                            </div>
+                            <span class="font-black ${st.totalRevenue > 0 ? 'text-emerald-400' : 'text-slate-600'} tabular-nums">${st.totalRevenue} ج</span>
+                        </div>
+                    `).join('')}
                 </div>
-                ${psBreakdown.map(renderStationBreakdownCardHTML).join('')}
-                <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5 pt-3 border-t border-slate-800">
-                    <i data-lucide="circle-dot" class="w-4 h-4"></i> قسم البلياردو (طرابيزتين)
-                </div>
-                ${billiardsBreakdown.map(renderStationBreakdownCardHTML).join('')}
-                ${surplusSectionHTML}
-                ${expensesSectionHTML}
             `;
 
-            const archSection = document.getElementById('ho-archived-section');
+            const archSec = document.getElementById('ho-archived-section');
             const archList = document.getElementById('ho-archived-list');
             const archCount = document.getElementById('ho-archived-count');
             if (handedOverShifts.length > 0) {
-                archSection.classList.remove('hidden');
-                archCount.innerText = String(handedOverShifts.length);
-                archList.innerHTML = handedOverShifts.slice(0, 5).map(sh => {
-                    const net = sh.netCash !== undefined ? sh.netCash : (Number(sh.totalRevenue) || 0);
-                    return `
-                        <div class="flex items-center justify-between bg-slate-950 px-2.5 py-1.5 rounded-lg border border-slate-800">
-                            <span class="text-slate-300 font-bold">${sh.shiftLabel} (${sh.dateKey})</span>
-                            <span class="text-emerald-400 font-black tabular-nums">صافي ${net} ج</span>
-                        </div>
-                    `;
-                }).join('');
+                archSec.classList.remove('hidden');
+                archCount.innerText = handedOverShifts.length;
+                archList.innerHTML = handedOverShifts.slice(0, 5).map(sh => `
+                    <div class="flex items-center justify-between bg-slate-950 rounded-xl px-2.5 py-1.5 border border-slate-800">
+                        <span class="text-slate-300 font-bold">${sh.shiftLabel} (${sh.dateKey})</span>
+                        <span class="font-black text-emerald-400 tabular-nums">${sh.netCash} ج ${sh.syncedToCloud ? '☁️' : '📱'}</span>
+                    </div>
+                `).join('');
             } else {
-                archSection.classList.add('hidden');
+                archSec.classList.add('hidden');
             }
 
             document.getElementById('handover-modal').classList.remove('hidden');
@@ -3173,12 +3197,12 @@
         }
 
         function closeHandoverModal() {
-            const modal = document.getElementById('handover-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('handover-modal').classList.add('hidden');
         }
 
         async function confirmShiftHandover() {
-            const payload = buildShiftHandoverPayload();
+            const selectedDateKey = document.getElementById('ho-date-input')?.value || getLocalDateKey(new Date());
+            const payload = buildShiftHandoverPayload(selectedDateKey);
             handedOverShifts.unshift(payload);
             shiftHistory = [];
             shiftExpenses = [];
@@ -3195,425 +3219,327 @@
                     handedOverShifts[idx].syncedToCloud = true;
                     saveState();
                 }
-                showToast(`تم تسليم ${payload.shiftLabel} ورفعه للمدير سحابياً بنجاح!`);
+                showToast(`تم تسليم ${payload.shiftLabel} بتاريخ (${payload.dateKey}) للمدير سحابياً بنجاح!`);
             } else if (result.reason !== 'permission-denied') {
-                showToast(`تم حفظ ${payload.shiftLabel} محلياً (غير متصل بسحابة Firebase حالياً)`, 4500);
+                showToast(`تم حفظ ${payload.shiftLabel} بتاريخ (${payload.dateKey}) محلياً (غير متصل بالسحابة حالياً)`, 4500);
             }
         }
 
         // =========================================================================
-        // 👑 لوحة تحكم المدير (الواجهة السريعة لليوم + التقويم + حذف الشفت)
+        // 👑 لوحة تحكم المدير (اليوم + التقويم الشهري + حذف الشفت)
         // =========================================================================
+        function switchManagerView(view) {
+            managerActiveView = view;
+            const tabToday = document.getElementById('mgr-tab-today');
+            const tabCal = document.getElementById('mgr-tab-calendar');
+            const viewToday = document.getElementById('mgr-view-today');
+            const viewCal = document.getElementById('mgr-view-calendar');
+
+            if (view === 'today') {
+                tabToday.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg';
+                tabCal.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
+                viewToday.classList.remove('hidden');
+                viewCal.classList.add('hidden');
+            } else {
+                tabCal.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg';
+                tabToday.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
+                viewCal.classList.remove('hidden');
+                viewToday.classList.add('hidden');
+            }
+            renderManagerDashboard();
+        }
+
+        function buildManagerShiftCardHTML(sh) {
+            const totalSurplus = Number(sh.totalSurplus) || 0;
+            const sessionsRev = sh.sessionsRevenue !== undefined ? Number(sh.sessionsRevenue) : Math.max(0, (Number(sh.totalRevenue) || 0) - totalSurplus);
+            const totalRev = Number(sh.totalRevenue) || 0;
+            const totalExp = Number(sh.totalExpenses) || 0;
+            const netCash = sh.netCash !== undefined ? Number(sh.netCash) : (totalRev - totalExp);
+            const surplusList = Array.isArray(sh.surplusList) ? sh.surplusList : [];
+            const expensesList = Array.isArray(sh.expenses) ? sh.expenses : [];
+            const breakdown = Array.isArray(sh.stationsBreakdown) ? sh.stationsBreakdown : [];
+
+            return `
+                <div class="bg-slate-950/90 border border-slate-800 rounded-3xl p-4 space-y-3">
+                    <div class="flex items-start justify-between gap-2 flex-wrap border-b border-slate-800/80 pb-3">
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="text-sm font-black text-white">${sh.shiftLabel}</span>
+                                <span class="text-[10px] font-black px-2 py-0.5 rounded-full ${sh.syncedToCloud ? 'bg-emerald-500/20 text-emerald-300' : 'bg-amber-500/20 text-amber-300'}">${sh.syncedToCloud ? '☁️ محفوظ سحابياً' : '📱 محلي'}</span>
+                            </div>
+                            <span class="text-[11px] text-slate-400 font-bold block mt-0.5">التاريخ: ${sh.dateKey} • وقت التسليم: ${sh.handedOverTimeLabel || formatTime12Hour(sh.handedOverAt)}</span>
+                        </div>
+                        <button onclick="openDeleteShiftModal('${sh.id}')" class="px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/30 border border-rose-500/35 text-rose-300 text-xs font-black flex items-center gap-1 transition active:scale-95">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            <span>حذف الشفت</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                        <div class="bg-slate-900 rounded-2xl p-2.5 border border-slate-800">
+                            <span class="text-[10px] text-slate-400 block">إيراد الأجهزة</span>
+                            <strong class="text-sm font-black text-blue-400 tabular-nums">${sessionsRev} ج</strong>
+                        </div>
+                        <div class="bg-slate-900 rounded-2xl p-2.5 border border-cyan-500/25">
+                            <span class="text-[10px] text-cyan-300 block">الزيادات</span>
+                            <strong class="text-sm font-black text-cyan-400 tabular-nums">+${totalSurplus} ج</strong>
+                        </div>
+                        <div class="bg-slate-900 rounded-2xl p-2.5 border border-orange-500/25">
+                            <span class="text-[10px] text-orange-300 block">المصروفات</span>
+                            <strong class="text-sm font-black text-orange-400 tabular-nums">-${totalExp} ج</strong>
+                        </div>
+                        <div class="bg-emerald-500/15 rounded-2xl p-2.5 border border-emerald-500/35">
+                            <span class="text-[10px] text-emerald-300 block">صافي الدرج</span>
+                            <strong class="text-base font-black text-emerald-400 tabular-nums">${netCash} ج</strong>
+                        </div>
+                    </div>
+
+                    ${totalSurplus > 0 ? `
+                        <div class="bg-cyan-500/10 border border-cyan-500/25 rounded-2xl p-3 text-xs space-y-1">
+                            <div class="font-black text-cyan-300">تفاصيل الزيادات (الإجمالي بعد الزيادة: ${totalRev} ج):</div>
+                            ${surplusList.map(s => `<div class="flex justify-between text-slate-200"><span>${s.reason}</span><strong class="text-cyan-400 tabular-nums">+${s.amount} ج</strong></div>`).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${expensesList.length > 0 ? `
+                        <div class="bg-orange-500/10 border border-orange-500/25 rounded-2xl p-3 text-xs space-y-1">
+                            <div class="font-black text-orange-300">تفاصيل المصروفات:</div>
+                            ${expensesList.map(e => `<div class="flex justify-between text-slate-200"><span>${e.reason}</span><strong class="text-orange-400 tabular-nums">-${e.amount} ج</strong></div>`).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${breakdown.length > 0 ? `
+                        <div class="grid grid-cols-2 sm:grid-cols-5 gap-1.5 pt-1">
+                            ${breakdown.map(st => `
+                                <div class="bg-slate-900/90 border border-slate-800 rounded-xl p-2 text-[11px] flex items-center justify-between">
+                                    <span class="text-slate-300 font-bold truncate">${st.stationName}</span>
+                                    <strong class="${st.totalRevenue > 0 ? 'text-emerald-400' : 'text-slate-600'} tabular-nums">${st.totalRevenue} ج</strong>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderManagerDashboard() {
+            const todayKey = getLocalDateKey(new Date());
+            const todayShifts = handedOverShifts.filter(s => s.dateKey === todayKey);
+
+            const todayGross = todayShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
+            const todayExp = todayShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+            const todayNet = todayGross - todayExp;
+
+            document.getElementById('mgr-today-title').innerText = `تقرير اليوم — ${formatArabicDateFromKey(todayKey)}`;
+            document.getElementById('mgr-today-gross').innerText = `${todayGross} ج`;
+            document.getElementById('mgr-today-expenses').innerText = `${todayExp} ج`;
+            document.getElementById('mgr-today-total').innerText = `${todayNet} ج`;
+
+            const todayContainer = document.getElementById('mgr-today-shifts-container');
+            if (todayShifts.length === 0) {
+                todayContainer.innerHTML = `<div class="text-center py-10 text-slate-500 text-xs font-bold">لم يتم تسليم أي شفت لتاريخ اليوم (${todayKey}) بعد</div>`;
+            } else {
+                todayContainer.innerHTML = todayShifts.map(buildManagerShiftCardHTML).join('');
+            }
+
+            renderManagerCalendar();
+            safeCreateIcons();
+        }
+
+        function changeManagerMonth(delta) {
+            managerCalMonth += delta;
+            if (managerCalMonth < 0) {
+                managerCalMonth = 11;
+                managerCalYear--;
+            } else if (managerCalMonth > 11) {
+                managerCalMonth = 0;
+                managerCalYear++;
+            }
+            renderManagerCalendar();
+        }
+
+        function selectManagerDay(dateKey) {
+            managerSelectedDateKey = dateKey;
+            renderManagerCalendar();
+        }
+
+        function renderManagerCalendar() {
+            const monthTitle = document.getElementById('mgr-cal-month-title');
+            if (monthTitle) monthTitle.innerText = `${ARABIC_MONTHS[managerCalMonth]} ${managerCalYear}`;
+
+            const monthPrefix = `${managerCalYear}-${String(managerCalMonth + 1).padStart(2, '0')}-`;
+            const monthShifts = handedOverShifts.filter(s => (s.dateKey || '').startsWith(monthPrefix));
+
+            const mGross = monthShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
+            const mExp = monthShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+            const mNet = mGross - mExp;
+            const mSessions = monthShifts.reduce((sum, s) => sum + (Number(s.totalSessions) || 0), 0);
+
+            document.getElementById('mgr-cal-month-gross').innerText = `${mGross} ج`;
+            document.getElementById('mgr-cal-month-expenses').innerText = `${mExp} ج`;
+            document.getElementById('mgr-cal-month-revenue').innerText = `${mNet} ج`;
+            document.getElementById('mgr-cal-month-shifts').innerText = monthShifts.length;
+            document.getElementById('mgr-cal-month-sessions').innerText = mSessions;
+
+            const firstDay = new Date(managerCalYear, managerCalMonth, 1);
+            const daysInMonth = new Date(managerCalYear, managerCalMonth + 1, 0).getDate();
+            // السبت = 0 ... الجمعة = 6
+            const startOffset = (firstDay.getDay() + 1) % 7;
+
+            const grid = document.getElementById('mgr-cal-days-grid');
+            let cellsHTML = '';
+            for (let i = 0; i < startOffset; i++) {
+                cellsHTML += `<div class="h-14 sm:h-16 rounded-xl bg-slate-950/30"></div>`;
+            }
+
+            const todayKey = getLocalDateKey(new Date());
+            for (let day = 1; day <= daysInMonth; day++) {
+                const key = `${managerCalYear}-${String(managerCalMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                const dayShifts = monthShifts.filter(s => s.dateKey === key);
+                const dayNet = dayShifts.reduce((sum, s) => sum + ((Number(s.totalRevenue) || 0) - (Number(s.totalExpenses) || 0)), 0);
+                const isSelected = key === managerSelectedDateKey;
+                const isToday = key === todayKey;
+
+                cellsHTML += `
+                    <button onclick="selectManagerDay('${key}')" class="h-14 sm:h-16 rounded-xl border p-1 flex flex-col items-center justify-between transition active:scale-95 ${isSelected ? 'bg-amber-500/20 border-amber-400 text-white shadow-lg' : (dayShifts.length > 0 ? 'bg-emerald-950/40 border-emerald-500/35 text-white hover:border-emerald-400' : 'bg-slate-950/70 border-slate-800/80 text-slate-400 hover:border-slate-600')}">
+                        <span class="text-xs font-black ${isToday ? 'text-amber-400 underline' : ''}">${day}</span>
+                        ${dayShifts.length > 0 ? `<span class="text-[10px] font-black text-emerald-400 tabular-nums truncate max-w-full">${dayNet} ج</span>` : `<span class="text-[9px] text-slate-600">-</span>`}
+                    </button>
+                `;
+            }
+            grid.innerHTML = cellsHTML;
+
+            const detailsBox = document.getElementById('mgr-selected-day-details');
+            const selectedShifts = handedOverShifts.filter(s => s.dateKey === managerSelectedDateKey);
+            const selGross = selectedShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
+            const selExp = selectedShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
+            const selNet = selGross - selExp;
+
+            detailsBox.innerHTML = `
+                <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-800">
+                    <div>
+                        <span class="text-xs font-bold text-amber-400 block">تفاصيل اليوم المحدد</span>
+                        <h3 class="text-base sm:text-lg font-black text-white">${formatArabicDateFromKey(managerSelectedDateKey)}</h3>
+                    </div>
+                    <div class="text-left">
+                        <span class="text-[11px] text-slate-400 block">صافي اليوم</span>
+                        <strong class="text-lg font-black text-emerald-400 tabular-nums">${selNet} ج</strong>
+                    </div>
+                </div>
+                ${selectedShifts.length === 0
+                    ? `<div class="text-center py-8 text-slate-500 text-xs font-bold">لا توجد شفتات مسلمة في هذا اليوم</div>`
+                    : `<div class="space-y-3">${selectedShifts.map(buildManagerShiftCardHTML).join('')}</div>`
+                }
+            `;
+            safeCreateIcons();
+        }
+
         function openDeleteShiftModal(shiftId) {
-            if (!currentUser || currentUser.role !== 'manager') return;
-            const target = handedOverShifts.find(s => String(s.id) === String(shiftId));
-            if (!target) return;
-
-            pendingDeleteShiftId = String(target.id);
-            const gross = Number(target.totalRevenue) || 0;
-            const expensesTotal = Number(target.totalExpenses) || 0;
-            const netCash = target.netCash !== undefined ? Number(target.netCash) : (gross - expensesTotal);
-
-            document.getElementById('del-shift-label').innerText = target.shiftLabel || 'شفت';
-            document.getElementById('del-shift-date').innerText = `${target.dateKey || ''} • ${target.handedOverTimeLabel || '--:--'}`;
-            document.getElementById('del-shift-net').innerText = `${netCash} جنيه`;
-
+            const sh = handedOverShifts.find(s => String(s.id) === String(shiftId));
+            if (!sh) return;
+            pendingDeleteShiftId = shiftId;
+            document.getElementById('del-shift-label').innerText = sh.shiftLabel || '--';
+            document.getElementById('del-shift-date').innerText = `${sh.dateKey} (${sh.handedOverTimeLabel || ''})`;
+            const netCash = sh.netCash !== undefined ? sh.netCash : ((Number(sh.totalRevenue) || 0) - (Number(sh.totalExpenses) || 0));
+            document.getElementById('del-shift-net').innerText = `${netCash} ج`;
             document.getElementById('delete-shift-modal').classList.remove('hidden');
             safeCreateIcons();
         }
 
         function closeDeleteShiftModal() {
             pendingDeleteShiftId = null;
-            const modal = document.getElementById('delete-shift-modal');
-            if (modal) modal.classList.add('hidden');
+            document.getElementById('delete-shift-modal').classList.add('hidden');
         }
 
         async function confirmDeleteShift() {
-            if (!currentUser || currentUser.role !== 'manager' || !pendingDeleteShiftId) return;
-
-            const shiftIdToDelete = pendingDeleteShiftId;
-            const btn = document.getElementById('confirm-delete-shift-btn');
-            if (btn) btn.disabled = true;
-
-            handedOverShifts = handedOverShifts.filter(s => String(s.id) !== String(shiftIdToDelete));
-            saveState();
-
-            const deletedFromCloud = await deleteShiftFromManagerCloud(shiftIdToDelete);
-
-            if (btn) btn.disabled = false;
+            if (!pendingDeleteShiftId) return;
+            const idToDelete = pendingDeleteShiftId;
             closeDeleteShiftModal();
 
-            if (managerActiveView === 'today') renderManagerTodayView();
-            else renderManagerCalendarView();
-            safeCreateIcons();
+            handedOverShifts = handedOverShifts.filter(s => String(s.id) !== String(idToDelete));
+            saveState();
+            renderManagerDashboard();
 
-            showToast(deletedFromCloud
-                ? 'تم حذف الشفت نهائياً من السحابة وجميع التليفونات!'
-                : 'تم حذف الشفت من السجل المحلي بنجاح');
-        }
-
-        function switchManagerView(view) {
-            managerActiveView = view;
-            const todayTab = document.getElementById('mgr-tab-today');
-            const calTab = document.getElementById('mgr-tab-calendar');
-            const todayView = document.getElementById('mgr-view-today');
-            const calView = document.getElementById('mgr-view-calendar');
-
-            if (view === 'today') {
-                todayTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg';
-                calTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
-                todayView.classList.remove('hidden');
-                calView.classList.add('hidden');
-                renderManagerTodayView();
+            const res = await deleteShiftFromCloud(idToDelete);
+            if (res.ok) {
+                showToast('تم حذف الشفت نهائياً من قاعدة البيانات وكل التليفونات!');
             } else {
-                calTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 shadow-lg';
-                todayTab.className = 'py-3 rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 transition text-slate-400 hover:text-white';
-                calView.classList.remove('hidden');
-                todayView.classList.add('hidden');
-                renderManagerCalendarView();
+                showToast('تم حذف الشفت محلياً');
             }
-            safeCreateIcons();
-        }
-
-        function renderManagerShiftCardHTML(shift) {
-            const isEvening = shift.shiftType === 'evening';
-            const badgeStyle = isEvening
-                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/35'
-                : 'bg-amber-500/20 text-amber-300 border border-amber-500/35';
-
-            const gross = Number(shift.totalRevenue) || 0;
-            const surplusTotal = Number(shift.totalSurplus) || 0;
-            const surplusList = Array.isArray(shift.surplusList) ? shift.surplusList : [];
-            const expensesTotal = Number(shift.totalExpenses) || 0;
-            const netCash = shift.netCash !== undefined ? Number(shift.netCash) : (gross - expensesTotal);
-            const expensesList = Array.isArray(shift.expenses) ? shift.expenses : [];
-
-            const breakdown = Array.isArray(shift.stationsBreakdown) ? shift.stationsBreakdown : [];
-            const psList = breakdown.filter(s => s.stationCategory !== 'billiards');
-            const billiardsList = breakdown.filter(s => s.stationCategory === 'billiards');
-            const safeShiftId = String(shift.id).replace(/'/g, "\\'");
-
-            return `
-                <div class="bg-slate-950/90 border border-slate-800 rounded-3xl p-4 space-y-3">
-                    <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="px-3 py-1 rounded-xl text-xs font-black ${badgeStyle}">${shift.shiftLabel || 'شفت'}</span>
-                            <span class="text-xs text-slate-400 font-bold">سُلِّم الساعة ${shift.handedOverTimeLabel || '--:--'}</span>
-                            ${shift.syncedToCloud ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">☁️ محفوظ سحابياً</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300">📱 محلي</span>'}
-                        </div>
-                        <div class="flex items-center gap-2 sm:gap-3 text-xs flex-wrap">
-                            <span class="text-slate-400">الإجمالي: <strong class="text-blue-400 tabular-nums">${gross} ج</strong></span>
-                            ${surplusTotal > 0 ? `<span class="text-slate-400">منها زيادات: <strong class="text-cyan-400 tabular-nums">+${surplusTotal} ج</strong></span>` : ''}
-                            ${expensesTotal > 0 ? `<span class="text-slate-400">مصروف: <strong class="text-orange-400 tabular-nums">-${expensesTotal} ج</strong></span>` : ''}
-                            <span class="px-2.5 py-1 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 font-black tabular-nums">صافي الدرج: ${netCash} ج</span>
-                            <button onclick="openDeleteShiftModal('${safeShiftId}')" title="حذف هذا الشفت نهائياً" class="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-600/30 text-rose-400 hover:text-rose-200 border border-rose-500/35 font-black text-[11px] transition active:scale-95">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
-                                <span>حذف الشفت</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        ${psList.map(renderStationBreakdownCardHTML).join('')}
-                    </div>
-
-                    ${billiardsList.length > 0 ? `
-                        <div class="pt-3 border-t border-slate-800/80 space-y-2">
-                            <div class="text-xs font-black text-emerald-300 flex items-center gap-1.5">
-                                <i data-lucide="circle-dot" class="w-4 h-4"></i> قسم البلياردو (طرابيزتين)
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                                ${billiardsList.map(renderStationBreakdownCardHTML).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    ${surplusList.length > 0 ? `
-                        <div class="pt-3 border-t border-slate-800/80 space-y-2">
-                            <div class="text-xs font-black text-cyan-300 flex items-center gap-1.5">
-                                <i data-lucide="plus-circle" class="w-4 h-4"></i> زيادات الدرج (+${surplusTotal} ج)
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                ${surplusList.map(item => `
-                                    <div class="flex items-center justify-between bg-slate-900/90 border border-cyan-500/25 rounded-xl px-3 py-2 text-xs">
-                                        <div>
-                                            <span class="font-bold text-slate-200">${item.reason}</span>
-                                            <span class="text-[10px] text-slate-400 mr-1">(${formatTime12Hour(item.time)})</span>
-                                        </div>
-                                        <span class="font-black text-cyan-400 tabular-nums">+ ${item.amount} ج</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    ${expensesList.length > 0 ? `
-                        <div class="pt-3 border-t border-slate-800/80 space-y-2">
-                            <div class="text-xs font-black text-orange-300 flex items-center gap-1.5">
-                                <i data-lucide="banknote" class="w-4 h-4"></i> مصروفات الشفت (${expensesTotal} ج)
-                            </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                ${expensesList.map(exp => `
-                                    <div class="flex items-center justify-between bg-slate-900/90 border border-orange-500/20 rounded-xl px-3 py-2 text-xs">
-                                        <div>
-                                            <span class="font-bold text-slate-200">${exp.reason}</span>
-                                            <span class="text-[10px] text-slate-400 mr-1">(${formatTime12Hour(exp.time)})</span>
-                                        </div>
-                                        <span class="font-black text-orange-400 tabular-nums">- ${exp.amount} ج</span>
-                                    </div>
-                                `).join('')}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-            `;
-        }
-
-        function renderManagerTodayView() {
-            const todayKey = getLocalDateKey(new Date());
-            const todayShifts = handedOverShifts.filter(s => s.dateKey === todayKey);
-            const todayGross = todayShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
-            const todayExpenses = todayShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
-            const todayNet = todayGross - todayExpenses;
-
-            document.getElementById('mgr-today-title').innerText = `تقرير اليوم — ${new Date().toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}`;
-            document.getElementById('mgr-today-gross').innerText = `${todayGross} ج`;
-            document.getElementById('mgr-today-expenses').innerText = `${todayExpenses} ج`;
-            document.getElementById('mgr-today-total').innerText = `${todayNet} ج`;
-
-            const container = document.getElementById('mgr-today-shifts-container');
-            if (todayShifts.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-12 bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl">
-                        <i data-lucide="inbox" class="w-10 h-10 text-slate-600 mx-auto mb-2"></i>
-                        <p class="text-sm font-black text-slate-400">لم يتم تسليم أي شفت لليوم حتى الآن</p>
-                        <p class="text-xs text-slate-500 mt-1">سيظهر هنا شفت الفترة الصباحية والمسائية فور تسليمهما</p>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = todayShifts.map(renderManagerShiftCardHTML).join('');
-            }
-        }
-
-        function changeManagerMonth(delta) {
-            managerCalendarDate = new Date(managerCalendarDate.getFullYear(), managerCalendarDate.getMonth() + delta, 1);
-            renderManagerCalendarView();
-            safeCreateIcons();
-        }
-
-        function selectManagerDay(dateKey) {
-            managerSelectedDateKey = dateKey;
-            renderManagerCalendarView();
-            safeCreateIcons();
-        }
-
-        function renderManagerCalendarView() {
-            const year = managerCalendarDate.getFullYear();
-            const month = managerCalendarDate.getMonth();
-            const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}`;
-
-            const monthTitle = managerCalendarDate.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
-            document.getElementById('mgr-cal-month-title').innerText = monthTitle;
-
-            const monthShifts = handedOverShifts.filter(s => (s.dateKey || '').startsWith(monthPrefix));
-            const monthGross = monthShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
-            const monthExpenses = monthShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
-            const monthNet = monthGross - monthExpenses;
-            const monthSessions = monthShifts.reduce((sum, s) => sum + (Number(s.totalSessions) || 0), 0);
-
-            document.getElementById('mgr-cal-month-gross').innerText = `${monthGross} ج`;
-            document.getElementById('mgr-cal-month-expenses').innerText = `${monthExpenses} ج`;
-            document.getElementById('mgr-cal-month-revenue').innerText = `${monthNet} ج`;
-            document.getElementById('mgr-cal-month-shifts').innerText = String(monthShifts.length);
-            document.getElementById('mgr-cal-month-sessions').innerText = String(monthSessions);
-
-            const firstDayOfMonth = new Date(year, month, 1);
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const startOffset = (firstDayOfMonth.getDay() + 1) % 7;
-            const todayKey = getLocalDateKey(new Date());
-
-            let cellsHTML = '';
-            for (let i = 0; i < startOffset; i++) {
-                cellsHTML += `<div class="rounded-2xl p-2 bg-slate-950/30 border border-slate-900/50"></div>`;
-            }
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                const dayShifts = monthShifts.filter(s => s.dateKey === key);
-                const dayGross = dayShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
-                const dayExp = dayShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
-                const dayNet = dayGross - dayExp;
-                const isSelected = key === managerSelectedDateKey;
-                const isToday = key === todayKey;
-
-                const hasMorning = dayShifts.some(s => s.shiftType === 'morning');
-                const hasEvening = dayShifts.some(s => s.shiftType === 'evening');
-
-                cellsHTML += `
-                    <button onclick="selectManagerDay('${key}')" class="rounded-2xl p-1.5 sm:p-2 border text-center transition flex flex-col items-center justify-between min-h-[62px] sm:min-h-[72px] ${
-                        isSelected
-                            ? 'bg-amber-500/20 border-amber-400 shadow-lg shadow-amber-500/15'
-                            : isToday
-                                ? 'bg-blue-500/15 border-blue-500/50'
-                                : dayShifts.length > 0
-                                    ? 'bg-slate-950 border-emerald-500/40 hover:border-emerald-400'
-                                    : 'bg-slate-950/60 border-slate-800/80 hover:border-slate-700'
-                    }">
-                        <span class="text-xs sm:text-sm font-black ${isSelected ? 'text-amber-300' : 'text-white'} tabular-nums">${day}</span>
-                        ${dayShifts.length > 0
-                            ? `<span class="text-[10px] font-black text-emerald-400 tabular-nums leading-tight">${dayNet}ج</span>`
-                            : `<span class="text-[9px] text-slate-600">-</span>`
-                        }
-                        <div class="flex items-center gap-1 mt-0.5">
-                            ${hasMorning ? '<span class="w-1.5 h-1.5 rounded-full bg-amber-400" title="صباحي"></span>' : ''}
-                            ${hasEvening ? '<span class="w-1.5 h-1.5 rounded-full bg-indigo-400" title="مسائي"></span>' : ''}
-                        </div>
-                    </button>
-                `;
-            }
-
-            document.getElementById('mgr-cal-days-grid').innerHTML = cellsHTML;
-
-            const selectedShifts = handedOverShifts.filter(s => s.dateKey === managerSelectedDateKey);
-            const selectedGross = selectedShifts.reduce((sum, s) => sum + (Number(s.totalRevenue) || 0), 0);
-            const selectedExp = selectedShifts.reduce((sum, s) => sum + (Number(s.totalExpenses) || 0), 0);
-            const selectedNet = selectedGross - selectedExp;
-            const detailsContainer = document.getElementById('mgr-selected-day-details');
-
-            const [sy, sm, sd] = managerSelectedDateKey.split('-').map(Number);
-            const selectedDateLabel = new Date(sy, sm - 1, sd).toLocaleDateString('ar-EG', {
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-            });
-
-            detailsContainer.innerHTML = `
-                <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
-                    <div>
-                        <span class="text-[11px] text-amber-400 font-bold block">تفاصيل اليوم المختار</span>
-                        <h3 class="text-base sm:text-lg font-black text-white">${selectedDateLabel}</h3>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        ${selectedExp > 0 ? `
-                            <div class="bg-orange-500/15 border border-orange-500/30 rounded-xl px-3 py-1.5 text-center">
-                                <span class="text-[10px] text-orange-300 font-bold block">مصروفات</span>
-                                <span class="text-sm font-black text-orange-400 tabular-nums">${selectedExp} ج</span>
-                            </div>
-                        ` : ''}
-                        <div class="bg-emerald-500/15 border border-emerald-500/30 rounded-xl px-3.5 py-1.5 text-center">
-                            <span class="text-[10px] text-emerald-300 font-bold block">صافي اليوم</span>
-                            <span class="text-lg font-black text-emerald-400 tabular-nums">${selectedNet} جنيه</span>
-                        </div>
-                    </div>
-                </div>
-                ${selectedShifts.length === 0 ? `
-                    <div class="text-center py-8 text-slate-500 text-sm font-bold">
-                        لا توجد شفتات مسجلة في هذا اليوم
-                    </div>
-                ` : `
-                    <div class="space-y-4">
-                        ${selectedShifts.map(renderManagerShiftCardHTML).join('')}
-                    </div>
-                `}
-            `;
         }
 
         // =========================================================================
-        // ⏱️ الحلقة الحية (الساعة، العدادات اللحظية، والمنبه)
+        // ⏱️ المؤقت الحي كل ثانية (Clock + Active Cards + Alarms + Live Modal)
         // =========================================================================
-        function updateLiveClockAndDate() {
-            const now = new Date();
-            const dateStr = now.toLocaleDateString('ar-EG', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
-            const clockStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        function updateLiveClockAndTimers() {
+            const nowObj = new Date();
+            const nowTs = nowObj.getTime();
 
-            const liveDateEl = document.getElementById('live-date');
-            const liveClockEl = document.getElementById('live-clock');
-            const mgrDateEl = document.getElementById('mgr-live-date');
+            const timeStr = nowObj.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+            const dateStr = nowObj.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 
-            if (liveDateEl) liveDateEl.innerText = dateStr;
-            if (liveClockEl) liveClockEl.innerText = clockStr;
-            if (mgrDateEl) mgrDateEl.innerText = `${dateStr} • ${clockStr}`;
-        }
+            const elClock = document.getElementById('live-clock');
+            const elDate = document.getElementById('live-date');
+            const elMgrDate = document.getElementById('mgr-live-date');
+            if (elClock) elClock.innerText = timeStr;
+            if (elDate) elDate.innerText = dateStr;
+            if (elMgrDate) elMgrDate.innerText = `${dateStr} • ${timeStr}`;
 
-        function startLiveLoop() {
-            setInterval(() => {
-                updateLiveClockAndDate();
+            if (!currentUser || currentUser.role !== 'staff') return;
 
-                if (!currentUser || currentUser.role !== 'staff') return;
+            let stateChanged = false;
+            for (const st of stations) {
+                if (st.status === 'active' && st.mode === 'fixed' && st.endTime && nowTs >= st.endTime && !st.alarmTriggered) {
+                    st.alarmTriggered = true;
+                    stateChanged = true;
+                    triggerStationAlarm(st);
+                }
+            }
+            if (stateChanged) saveState();
 
-                const now = Date.now();
-                let stateChanged = false;
+            renderAllGrids();
 
-                stations.forEach(station => {
-                    if (station.status === 'active' && station.mode === 'fixed' && station.endTime && now >= station.endTime && !station.alarmTriggered) {
-                        station.alarmTriggered = true;
-                        stateChanged = true;
-                        triggerStationAlarm(station);
+            // تحديث الأرقام الحية داخل نافذة الجهاز المفتوحة بدون إعادة رسم المدخلات
+            if (selectedStationId && modalActiveTab === 'control') {
+                const st = stations.find(s => s.id === selectedStationId);
+                if (st && st.status === 'active') {
+                    const isFixed = st.mode === 'fixed' && st.endTime;
+                    const isOvertime = isFixed && nowTs >= st.endTime;
+                    const timerEl = document.getElementById('modal-live-timer');
+                    const playEl = document.getElementById('modal-live-play');
+                    const totalEl = document.getElementById('modal-live-total');
+                    const btnTotalEl = document.getElementById('modal-end-btn-total');
+                    const otCostEl = document.getElementById('modal-overtime-cost');
+
+                    const playCost = calculatePlayCost(st, nowTs);
+                    const totalCost = roundToFive(playCost + roundToFive(st.extras || 0));
+
+                    if (timerEl) {
+                        timerEl.innerText = isFixed
+                            ? (isOvertime ? `+${formatTimerHHMMSS(nowTs - st.endTime)}` : formatTimerHHMMSS(Math.max(0, st.endTime - nowTs)))
+                            : formatTimerHHMMSS(Math.max(0, nowTs - st.startTime));
                     }
-                });
-
-                if (stateChanged) saveState();
-                renderAllGrids();
-
-                if (selectedStationId && modalActiveTab === 'control') {
-                    const st = stations.find(s => s.id === selectedStationId);
-                    if (st && st.status === 'active') {
-                        const timerEl = document.getElementById('modal-live-timer');
-                        const playEl = document.getElementById('modal-live-play');
-                        const totalEl = document.getElementById('modal-live-total');
-                        const endBtnTotalEl = document.getElementById('modal-end-btn-total');
-                        const overtimeCostEl = document.getElementById('modal-overtime-cost');
-                        const isOvertimeNow = st.mode === 'fixed' && st.endTime && now >= st.endTime;
-
-                        if (isOvertimeNow && !overtimeCostEl) {
-                            renderStationModal();
-                        } else {
-                            if (timerEl) {
-                                if (st.mode === 'fixed' && st.endTime) {
-                                    timerEl.innerText = isOvertimeNow
-                                        ? `+${formatTimerHHMMSS(now - st.endTime)}`
-                                        : formatTimerHHMMSS(Math.max(0, st.endTime - now));
-                                } else {
-                                    timerEl.innerText = formatTimerHHMMSS(Math.max(0, now - st.startTime));
-                                }
-                            }
-                            if (overtimeCostEl && isOvertimeNow) {
-                                overtimeCostEl.innerText = `+${roundToFive(calculateOvertimeCost(st, now))} ج`;
-                            }
-                            const playCost = calculatePlayCost(st, now);
-                            const totalCost = roundToFive(playCost + roundToFive(st.extras || 0));
-                            if (playEl) playEl.innerText = `${playCost} ج`;
-                            if (totalEl) totalEl.innerText = `${totalCost} ج`;
-                            if (endBtnTotalEl) endBtnTotalEl.innerText = `${totalCost} ج`;
-                        }
+                    if (playEl) playEl.innerText = `${playCost} ج`;
+                    if (totalEl) totalEl.innerText = `${totalCost} ج`;
+                    if (btnTotalEl) btnTotalEl.innerText = `${totalCost} ج`;
+                    if (otCostEl && isOvertime) {
+                        otCostEl.innerText = `+${roundToFive(calculateOvertimeCost(st, nowTs))} ج`;
                     }
                 }
-            }, 1000);
+            }
         }
 
         // =========================================================================
-        // 🚀 تشغيل التطبيق عند تحميل الصفحة
+        // 🚀 بدء التشغيل
         // =========================================================================
-        function bootApp() {
+        window.addEventListener('DOMContentLoaded', () => {
             loadState();
-            try {
-                const savedSession = localStorage.getItem(STORAGE_SESSION_USER_KEY);
-                if (savedSession) {
-                    currentUser = JSON.parse(savedSession);
-                }
-            } catch (e) {
-                currentUser = null;
-            }
-
-            applyAuthenticatedView();
-            startLiveLoop();
+            applyAuthView();
+            updateLiveClockAndTimers();
+            setInterval(updateLiveClockAndTimers, 1000);
+            initFirebaseCloud();
             safeCreateIcons();
-            initCloudConnection();
-        }
-
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', bootApp);
-        } else {
-            bootApp();
-        }
+        });
     </script>
 </body>
 </html>
