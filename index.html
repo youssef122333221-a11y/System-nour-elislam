@@ -1064,8 +1064,8 @@
     </div>
 
     <!-- رسالة تنبيه صغيرة (Toast) -->
-    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-800 text-white border border-slate-600 px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap">
-        <i data-lucide="info" class="w-4 h-4 text-blue-400"></i>
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-800 text-white border border-slate-600 px-5 py-3 rounded-2xl shadow-2xl text-sm font-bold flex items-center gap-2 transition-all max-w-[92vw]">
+        <i data-lucide="info" class="w-4 h-4 text-blue-400 shrink-0"></i>
         <span id="toast-msg">تم التحديث</span>
     </div>
 
@@ -1078,13 +1078,14 @@
         // الصق بيانات مشروعك على Firebase هنا:
         // =========================================================================
         const MANUAL_FIREBASE_CONFIG = {
-            apiKey: "AIzaSyCMwi0OUxsP-qX3tFnhlQQ7SyZ_TmVM_zc",
-            authDomain: "nour-elislam-ps.firebaseapp.com",
-            projectId: "nour-elislam-ps",
-            storageBucket: "nour-elislam-ps.firebasestorage.app",
-            messagingSenderId: "585994862560",
-            appId: "1:585994862560:web:71614bd1b2a698d27a7585"
+            apiKey: "",
+            authDomain: "",
+            projectId: "",
+            storageBucket: "",
+            messagingSenderId: "",
+            appId: ""
         };
+
         // =========================================================================
         // 🔔 قناة إشعارات الخلفية الافتراضية (تصل حتى لو كروم مقفول عبر تطبيق ntfy)
         // =========================================================================
@@ -1240,7 +1241,7 @@
             return shiftSurplus.reduce((sum, s) => sum + (Number(s.amount) || 0), 0);
         }
 
-        function showToast(msg) {
+        function showToast(msg, durationMs) {
             const toast = document.getElementById('toast');
             const msgEl = document.getElementById('toast-msg');
             if (!toast || !msgEl) return;
@@ -1249,7 +1250,7 @@
             clearTimeout(toastTimer);
             toastTimer = setTimeout(() => {
                 toast.classList.add('hidden');
-            }, 3200);
+            }, durationMs || 3500);
         }
 
         function openStaffMenu() {
@@ -1346,7 +1347,7 @@
         }
 
         // =========================================================================
-        // ☁️ الربط السحابي (Firebase Cloud Firestore)
+        // ☁️ الربط السحابي (Firebase Cloud Firestore) — محمي ضد مسح الشفتات
         // =========================================================================
         function updateCloudBadge(statusText, stateType) {
             const badge = document.getElementById('cloud-sync-badge');
@@ -1402,9 +1403,32 @@
                 cloudUser = cloudAuth.currentUser;
                 updateCloudBadge('متصل سحابياً', 'online');
                 subscribeToManagerShifts();
+                retryUnsyncedShifts();
             } catch (err) {
                 console.warn('Cloud init fallback to local:', err);
-                updateCloudBadge('وضع محلي (تعذر السحابة)', 'local');
+                const code = err?.code || '';
+                if (code.includes('unauthorized-domain')) {
+                    updateCloudBadge('دومين غير مصرح به في Firebase', 'local');
+                } else {
+                    updateCloudBadge('وضع محلي (تعذر السحابة)', 'local');
+                }
+            }
+        }
+
+        async function retryUnsyncedShifts() {
+            if (!cloudDb || !cloudFns || !cloudUser) return;
+            const pending = handedOverShifts.filter(s => !s.syncedToCloud);
+            if (pending.length === 0) return;
+
+            for (const sh of pending) {
+                const res = await sendShiftToManagerCloud(sh, true);
+                if (res.ok) {
+                    const idx = handedOverShifts.findIndex(x => String(x.id) === String(sh.id));
+                    if (idx !== -1) {
+                        handedOverShifts[idx].syncedToCloud = true;
+                        saveState();
+                    }
+                }
             }
         }
 
@@ -1415,15 +1439,30 @@
             }
             const colRef = cloudFns.collection(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers');
             unsubscribeHandovers = cloudFns.onSnapshot(colRef, (snapshot) => {
+                // تجاهل القراءة الفارغة من الكاش المؤقت حتى لا تُمسح البيانات المحلية
+                if (snapshot.metadata && snapshot.metadata.fromCache && snapshot.empty && handedOverShifts.length > 0) {
+                    return;
+                }
+
                 const cloudList = [];
                 snapshot.forEach(docSnap => {
                     const data = docSnap.data();
                     if (data) {
-                        cloudList.push({ ...data, id: data.id || docSnap.id, syncedToCloud: true });
+                        const isConfirmedOnServer = !(docSnap.metadata && docSnap.metadata.hasPendingWrites);
+                        cloudList.push({
+                            ...data,
+                            id: data.id || docSnap.id,
+                            syncedToCloud: isConfirmedOnServer
+                        });
                     }
                 });
-                const unsyncedLocal = handedOverShifts.filter(s => !s.syncedToCloud && !cloudList.some(c => String(c.id) === String(s.id)));
-                handedOverShifts = [...unsyncedLocal, ...cloudList].sort((a, b) => (Number(b.handedOverAt) || 0) - (Number(a.handedOverAt) || 0));
+
+                const unsyncedLocal = handedOverShifts.filter(
+                    s => !s.syncedToCloud && !cloudList.some(c => String(c.id) === String(s.id))
+                );
+                handedOverShifts = [...unsyncedLocal, ...cloudList].sort(
+                    (a, b) => (Number(b.handedOverAt) || 0) - (Number(a.handedOverAt) || 0)
+                );
                 saveState();
 
                 if (currentUser && currentUser.role === 'manager') {
@@ -1433,18 +1472,30 @@
                 }
             }, (err) => {
                 console.warn('Firestore snapshot error:', err);
+                if (err?.code === 'permission-denied') {
+                    updateCloudBadge('خطأ صلاحيات Firebase Rules', 'local');
+                    showToast('تنبيه: قواعد Firestore ترفض القراءة! راجع تبويب Rules في Firebase', 5000);
+                }
             });
         }
 
-        async function sendShiftToManagerCloud(payload) {
-            if (!cloudDb || !cloudFns || !cloudUser) return false;
+        async function sendShiftToManagerCloud(payload, silent) {
+            if (!cloudDb || !cloudFns || !cloudUser) {
+                return { ok: false, reason: 'offline' };
+            }
             try {
+                // تنظيف الكائن من أي قيم undefined قبل الرفع لـ Firestore
+                const cleanPayload = JSON.parse(JSON.stringify({ ...payload, syncedToCloud: true }));
                 const docRef = cloudFns.doc(cloudDb, 'artifacts', appId, 'public', 'data', 'shift_handovers', String(payload.id));
-                await cloudFns.setDoc(docRef, { ...payload, syncedToCloud: true });
-                return true;
+                await cloudFns.setDoc(docRef, cleanPayload);
+                return { ok: true };
             } catch (e) {
                 console.warn('Upload shift error:', e);
-                return false;
+                const code = e?.code || '';
+                if (!silent && code === 'permission-denied') {
+                    showToast('فشل الرفع للسحابة: قواعد Firebase Rules ترفض الكتابة!', 5500);
+                }
+                return { ok: false, reason: code || 'error' };
             }
         }
 
@@ -1790,13 +1841,11 @@
                     return baseMatchCost + overtimeCost;
                 }
 
-                // وقت محدد عادي أو مالتي (مع دعم التحويل والوقت الزائد بعد انتهاء الوقت المحدد)
                 const effectiveNow = Math.max(now, station.endTime);
                 const elapsedSegMs = Math.max(0, effectiveNow - segStart);
                 return (Number(station.accruedCost) || 0) + (elapsedSegMs / 3600000) * currentRate;
             }
 
-            // وقت مفتوح (أوبن)
             const segStart = station.segmentStartTime || station.startTime;
             const elapsedSegMs = Math.max(0, now - segStart);
             return (Number(station.accruedCost) || 0) + (elapsedSegMs / 3600000) * currentRate;
@@ -1955,7 +2004,6 @@
             psGrid.innerHTML = psStations.map(s => buildStationCardHTML(s, now)).join('');
             bilGrid.innerHTML = bilStations.map(s => buildStationCardHTML(s, now)).join('');
 
-            // تحديث الإحصائيات العلوية
             const activeList = stations.filter(s => s.status === 'active');
             const runningCash = activeList.reduce((sum, s) => sum + roundToFive(calculatePlayCost(s, now) + roundToFive(s.extras || 0)), 0);
             const sessionsRev = roundToFive(shiftHistory.reduce((sum, h) => sum + (Number(h.totalCost) || 0), 0));
@@ -2106,7 +2154,6 @@
                 return;
             }
 
-            // تبويب التحكم والوقت
             if (station.status === 'free') {
                 body.innerHTML = `
                     <div class="space-y-4">
@@ -2165,7 +2212,6 @@
                 return;
             }
 
-            // الجهاز شغال حالياً
             const now = Date.now();
             const playCost = calculatePlayCost(station, now);
             const extrasCost = roundToFive(station.extras || 0);
@@ -2250,7 +2296,6 @@
                         </button>
                     ` : ''}
 
-                    <!-- إضافة مشروبات وسناكس -->
                     <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="text-xs font-black text-purple-300 flex items-center gap-1.5">
@@ -2271,7 +2316,6 @@
                         </div>
                     </div>
 
-                    <!-- نقل الجلسة لجهاز آخر -->
                     <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-3 space-y-2">
                         <button onclick="toggleTransferPanel()" class="w-full flex items-center justify-between text-xs font-black text-amber-300">
                             <span class="flex items-center gap-1.5">
@@ -2295,13 +2339,11 @@
                         ` : ''}
                     </div>
 
-                    <!-- زر إنهاء الجلسة -->
                     <button onclick="endSession(${station.id})" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition active:scale-95">
                         <i data-lucide="check-circle-2" class="w-5 h-5"></i>
                         <span>إنهاء الوقت وحساب الفاتورة (<span id="modal-end-btn-total" class="tabular-nums">${totalCost} ج</span>)</span>
                     </button>
 
-                    <!-- زر إلغاء الجلسة (لما يتفتح بالغلط) -->
                     ${!cancelConfirmActive ? `
                         <button onclick="toggleCancelConfirm(true)" class="w-full py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 font-bold text-xs flex items-center justify-center gap-1.5 transition">
                             <i data-lucide="x-circle" class="w-4 h-4"></i>
@@ -2321,7 +2363,6 @@
             safeCreateIcons();
         }
 
-        // --- نافذة اختيار وقت البدء ---
         function requestCustomMinutesStart(stationId) {
             const input = document.getElementById('custom-minutes-input');
             const mins = parseInt(input?.value || '0', 10);
@@ -2384,7 +2425,6 @@
             const now = new Date();
             const customDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
 
-            // لو الوقت المختار يبدو بعد الآن بأكثر من 12 ساعة (مثلاً الساعة الآن 12:15 صباحاً وبدأوا 11:30 مساءً)
             if (customDate.getTime() - now.getTime() > 12 * 3600000) {
                 customDate.setDate(customDate.getDate() - 1);
             }
@@ -2440,7 +2480,6 @@
             const now = Date.now();
             const oldLabel = station.isMatch ? 'ماتش واحد' : (station.isMulti ? 'مالتي' : 'عادي');
 
-            // حفظ تكلفة الفترة السابقة بدقة قبل التحويل
             station.accruedCost = calculateExactPlayCost(station, now);
             station.segmentStartTime = now;
             station.isMatch = false;
@@ -3149,17 +3188,17 @@
             renderAllGrids();
             closeHandoverModal();
 
-            const uploaded = await sendShiftToManagerCloud(payload);
-            if (uploaded) {
+            const result = await sendShiftToManagerCloud(payload, false);
+            if (result.ok) {
                 const idx = handedOverShifts.findIndex(s => String(s.id) === String(payload.id));
                 if (idx !== -1) {
                     handedOverShifts[idx].syncedToCloud = true;
                     saveState();
                 }
+                showToast(`تم تسليم ${payload.shiftLabel} ورفعه للمدير سحابياً بنجاح!`);
+            } else if (result.reason !== 'permission-denied') {
+                showToast(`تم حفظ ${payload.shiftLabel} محلياً (غير متصل بسحابة Firebase حالياً)`, 4500);
             }
-            showToast(uploaded
-                ? `تم تسليم ${payload.shiftLabel} ورفعه للمدير سحابياً بنجاح!`
-                : `تم تسليم ${payload.shiftLabel} وحفظه محلياً بنجاح!`);
         }
 
         // =========================================================================
@@ -3260,6 +3299,7 @@
                         <div class="flex items-center gap-2 flex-wrap">
                             <span class="px-3 py-1 rounded-xl text-xs font-black ${badgeStyle}">${shift.shiftLabel || 'شفت'}</span>
                             <span class="text-xs text-slate-400 font-bold">سُلِّم الساعة ${shift.handedOverTimeLabel || '--:--'}</span>
+                            ${shift.syncedToCloud ? '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400">☁️ محفوظ سحابياً</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300">📱 محلي</span>'}
                         </div>
                         <div class="flex items-center gap-2 sm:gap-3 text-xs flex-wrap">
                             <span class="text-slate-400">الإجمالي: <strong class="text-blue-400 tabular-nums">${gross} ج</strong></span>
